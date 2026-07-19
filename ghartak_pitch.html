@@ -61,10 +61,32 @@ body{
 .mode-btn.active{background:var(--navy);color:var(--yellow);}
 
 /* ── DEVICE STAGE ── */
-.device-stage{display:flex;align-items:flex-start;justify-content:center;gap:40px;padding:0 24px 60px;width:100%;max-width:960px;flex-wrap:wrap;}
+@media (max-width:900px){
+
+.device-stage{
+
+    flex-direction:column;
+    align-items:center;
+    gap:35px;
+
+}
+
+.flow-panel{
+
+    width:100%;
+    max-width:500px;
+
+}
+.flow-step{
+
+    font-size:.78rem;
+
+}
+}
 .device-wrap{position:relative;flex-shrink:0;}
 .device{
-  width:375px;background:var(--white);border-radius:46px;
+    width:min(375px,95vw);
+background:var(--white);border-radius:46px;
   box-shadow:0 0 0 10px #0c1226,0 0 0 12px #05070f,var(--shadow-lg);
   overflow:hidden;position:relative;
 }
@@ -197,6 +219,102 @@ body{
 .flow-step:hover{background:white;color:var(--navy);}
 .flow-step.active-step{background:white;color:var(--navy);font-weight:700;border-color:var(--border2);box-shadow:0 1px 6px rgba(0,0,0,0.06);}
 .flow-step .step-icon{font-size:0.9rem;width:22px;text-align:center;}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width:900px){
+
+.device-stage{
+    flex-direction:column;
+    align-items:center;
+    gap:35px;
+}
+
+.flow-panel{
+    width:100%;
+    max-width:520px;
+}
+
+.device{
+    width:min(375px,95vw);
+}
+
+}
+
+@media (max-width:768px){
+
+.pitch-header{
+    padding:25px 16px 0;
+}
+
+.pitch-header p{
+    font-size:.9rem;
+}
+
+.mode-toggle{
+    width:100%;
+}
+
+.mode-btn{
+    flex:1;
+}
+
+}
+
+@media (max-width:500px){
+
+.device{
+    width:100%;
+}
+
+.device-notch{
+    width:30%;
+}
+
+.input-wrap{
+    padding:12px;
+}
+
+.sheet-body{
+    padding:16px;
+}
+
+.detail-row{
+    flex-direction:column;
+    align-items:flex-start;
+}
+
+.detail-row .v{
+    text-align:left;
+}
+
+.btn-full,
+.btn-ghost{
+    font-size:.88rem;
+}
+
+}
+
+@media (max-width:400px){
+
+.bottom-nav{
+    height:68px;
+}
+
+.bnav-item{
+    font-size:.55rem;
+}
+
+.bnav-item svg{
+    width:18px;
+    height:18px;
+}
+
+}
+
 </style>
 </head>
 <body>

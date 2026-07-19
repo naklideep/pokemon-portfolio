@@ -87,25 +87,10 @@ nav ul li a:hover::after{width:100%;}
 .hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;}
 .hamburger span{width:22px;height:2px;background:var(--ink);border-radius:2px;}
 @media (max-width:760px){
-  nav ul{position:fixed;top:0;right:0;height:100vh;width:min(82vw,340px);background:var(--panel);flex-direction:column;justify-content:center;align-items:flex-start;padding:0 32px;gap:22px;transform:translateX(100%);transition:transform .35s ease;z-index:90;border-left:2px solid var(--ink);}
+  nav ul{position:fixed;top:0;right:0;height:100vh;width:min(82vw,30px);background:var(--panel);flex-direction:column;justify-content:center;align-items:flex-start;padding:0 32px;gap:22px;transform:translateX(100%);transition:transform .35s ease;z-index:90;border-left:2px solid var(--ink);}
   nav ul.open{transform:translateX(0);}
   .hamburger{display:flex;}
   .navbtn{display:none;}
-}
-
-.menu-overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.45);
-    opacity:0;
-    pointer-events:none;
-    transition:.3s;
-    z-index:85;
-}
-
-.menu-overlay.show{
-    opacity:1;
-    pointer-events:auto;
 }
 
 /* ============ HERO ============ */
@@ -134,7 +119,8 @@ header.hero{padding:60px 0 40px;position:relative;}
 .btn.primary{background:var(--ink);color:var(--cream);}
 
 /* ============ SECTIONS ============ */
-section{padding:80px 0;position:relative;z-index:1;}
+@media(max-width:768px){}
+section{padding:55px 0;position:relative;z-index:1;}
 .section-tag{font-family:var(--display);font-size:.6rem;color:var(--red);letter-spacing:.05em;display:inline-block;margin-bottom:14px;}
 .section-title{font-size:clamp(1.5rem,3.2vw,2.2rem);margin-bottom:10px;}
 .section-sub{color:var(--ink-soft);max-width:60ch;margin-bottom:40px;}
@@ -184,7 +170,7 @@ section{padding:80px 0;position:relative;z-index:1;}
 .party-stats .ps-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.66rem;margin-bottom:5px;}
 
 /* ============ JOURNEY MAP ============ */
-.map-frame{position:relative;width:100%;aspect-ratio:2.6/1;min-height:260px;border:3px solid var(--ink);border-radius:var(--radius);overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.10) 25%,transparent 25%) 0 0/28px 28px,linear-gradient(135deg,rgba(255,255,255,.10) 25%,transparent 25%) 14px 14px/28px 28px,linear-gradient(45deg,#6BBF5A,#4FA843 60%,#3F9436);box-shadow:0 8px 0 var(--ink);}
+.map-frame{position:relative;width:100%;aspect-ratio:1/1;min-height:420px;border:3px solid var(--ink);border-radius:var(--radius);overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.10) 25%,transparent 25%) 0 0/28px 28px,linear-gradient(135deg,rgba(255,255,255,.10) 25%,transparent 25%) 14px 14px/28px 28px,linear-gradient(45deg,#6BBF5A,#4FA843 60%,#3F9436);box-shadow:0 8px 0 var(--ink);}
 .route-svg{position:absolute;inset:0;width:100%;height:100%;}
 .route-path{fill:none;stroke:#F4F4EC;stroke-width:9;stroke-linecap:round;stroke-dasharray:2 20;opacity:.85;}
 .map-node{position:absolute;transform:translate(-50%,-50%);text-align:center;cursor:pointer;z-index:3;background:none;border:none;padding:0;}
@@ -327,15 +313,16 @@ section{padding:80px 0;position:relative;z-index:1;}
 
 .featured-wrap{
     display:grid;
-    grid-template-columns:280px 1fr;
+    grid-template-columns:minmax(240px,280px) 1fr;
     gap:40px;
     align-items:start;
 }
 
 /* Phone Frame */
 .phone-mock{
-    width:260px;
-    height:530px;
+       width:min(260px,80vw);
+    aspect-ratio:9/19;
+    height:auto;
     border:9px solid var(--ink);
     border-radius:36px;
     background:var(--panel);
@@ -461,15 +448,63 @@ section{padding:80px 0;position:relative;z-index:1;}
 /* ============ RESPONSIVE SHOWCASE ============ */
 .responsive-row{display:flex;align-items:flex-end;gap:22px;flex-wrap:wrap;justify-content:center;}
 .device-frame{background:var(--panel);border:3px solid var(--panel-line);border-radius:10px;position:relative;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.68rem;color:var(--ink-soft);text-align:center;padding:10px;}
-.device-frame.desktop{width:290px;height:180px;}
-.device-frame.tablet{width:150px;height:200px;}
-.device-frame.phone{width:82px;height:170px;border-radius:16px;}
+.device-frame.desktop{
+    width:min(290px,90vw);
+    height:auto;
+    aspect-ratio:16/10;
+}
+
+.device-frame.tablet{
+    width:min(170px,45vw);
+    aspect-ratio:3/4;
+    height:auto;
+}
+
+.device-frame.phone{
+    width:min(90px,25vw);
+    aspect-ratio:9/19;
+    height:auto;
+}
 .device-label{font-family:var(--mono);font-size:.66rem;color:var(--ink-soft);text-align:center;margin-top:8px;}
 
 /* ============ LIVE PROTOTYPE EMBED (merge addition) ============ */
-.embed-frame-wrap{border:3px solid var(--panel-line);border-radius:var(--radius);overflow:hidden;box-shadow:0 8px 0 var(--panel-line);background:#F0EDF8;}
+/*.embed-frame-wrap{border:3px solid var(--panel-line);border-radius:var(--radius);overflow:hidden;box-shadow:0 8px 0 var(--panel-line);background:#F0EDF8;}
 .embed-frame-wrap iframe{display:block;width:100%;height:1500px;border:none;background:#F0EDF8;}
 .embed-note{font-family:var(--mono);font-size:.74rem;color:var(--ink-soft);margin-top:12px;}
+*/
+
+/* ============ LIVE PROTOTYPE EMBED ============ */
+
+.embed-frame-wrap{
+    border:3px solid var(--panel-line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:0 8px 0 var(--panel-line);
+    background:#F0EDF8;
+}
+
+.embed-frame-wrap iframe{
+    display:block;
+    width:100%;
+    height:1500px;
+    border:none;
+    background:#F0EDF8;
+}
+
+.embed-note{
+    font-family:var(--mono);
+    font-size:.74rem;
+    color:var(--ink-soft);
+    margin-top:12px;
+}
+
+@media(max-width:768px){
+
+    .embed-frame-wrap iframe{
+        height:700px;
+    }
+
+}
 
 footer{text-align:center;padding:30px 0 46px;font-family:var(--mono);font-size:.76rem;color:var(--ink-soft);position:relative;z-index:1;}
 #muteToggle{display:flex;align-items:center;gap:6px;}
@@ -527,8 +562,6 @@ footer{text-align:center;padding:30px 0 46px;font-family:var(--mono);font-size:.
     <button class="hamburger" id="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
   </div>
 </nav>
-
-<div class="menu-overlay" id="menuOverlay"></div>
 
 <header class="hero">
   <div class="wrap">
@@ -1035,54 +1068,11 @@ function typeHero(){
 setTimeout(typeHero, 900);
 
 /* ===== nav mobile ===== */
+const hamburger = document.getElementById('hamburger');
+const navList = document.getElementById('navList');
+hamburger.addEventListener('click', () => navList.classList.toggle('open'));
+navList.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navList.classList.remove('open')));
 
-const hamburger = document.getElementById("hamburger");
-const navList = document.getElementById("navList");
-const overlay = document.getElementById("menuOverlay");
-
-// Toggle menu
-hamburger.addEventListener("click", () => {
-
-    navList.classList.toggle("open");
-    overlay.classList.toggle("show");
-    document.body.classList.toggle("locked");
-
-});
-
-// Close when clicking a menu link
-document.querySelectorAll("#navList a").forEach(link => {
-
-    link.addEventListener("click", () => {
-
-        navList.classList.remove("open");
-        overlay.classList.remove("show");
-        document.body.classList.remove("locked");
-
-    });
-
-});
-
-// Close when clicking outside (overlay)
-overlay.addEventListener("click", () => {
-
-    navList.classList.remove("open");
-    overlay.classList.remove("show");
-    document.body.classList.remove("locked");
-
-});
-
-// Close with Escape key
-document.addEventListener("keydown", (e) => {
-
-    if (e.key === "Escape") {
-
-        navList.classList.remove("open");
-        overlay.classList.remove("show");
-        document.body.classList.remove("locked");
-
-    }
-
-});
 /* ===== exp bar / level ===== */
 const expFill = document.getElementById('expBarFill');
 const levelPill = document.getElementById('levelPill');
