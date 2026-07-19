@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trainer Deep | Deep Chaudhari — Full Stack & Flutter Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#E3350D; --red-dark:#B7280A; --cream:#F4F4EC; --ink:#1B1B1F; --ink-soft:#4A4A52;
+  --yellow:#FFCB05; --blue:#3B82C4; --line:rgba(27,27,31,0.12); --radius:18px;
+  --display:'Press Start 2P',monospace; --body:'Space Grotesk',sans-serif; --mono:'Space Mono',monospace;
+  --panel:#fff; --panel-line:var(--ink);
+}
+body.dark{
+  --cream:#14141A; --ink:#F4F4EC; --ink-soft:#B7B7C2; --line:rgba(244,244,236,0.14);
+  --panel:#1F1F27; --panel-line:#3a3a46;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--cream);color:var(--ink);font-family:var(--body);line-height:1.5;overflow-x:hidden;transition:background .4s ease,color .4s ease;}
+body.locked{overflow:hidden;height:100vh;}
+::selection{background:var(--yellow);color:var(--ink);}
+a{color:inherit;text-decoration:none;}
+.wrap{max-width:1100px;margin:0 auto;padding:0 28px;position:relative;z-index:1;}
+button{font-family:inherit;}
+
+body::before{content:"";position:fixed;inset:0;background-image:radial-gradient(circle,rgba(128,128,140,0.08) 1px,transparent 1px);background-size:22px 22px;pointer-events:none;z-index:0;}
+
+/* focus visibility (real a11y, not decorative) */
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible{
+  outline:3px solid var(--blue); outline-offset:3px; border-radius:4px;
+}
+
+/* ============ EXP BAR / LEVEL ============ */
+#expBarWrap{position:fixed;top:0;left:0;width:100%;height:6px;background:var(--ink);z-index:200;}
+#expBarFill{height:100%;width:0%;background:linear-gradient(90deg,var(--yellow),var(--red));transition:width .15s ease-out;}
+#hudRight{position:fixed;top:14px;right:16px;z-index:200;display:flex;gap:8px;align-items:center;}
+.hud-btn{background:var(--ink);color:var(--cream);font-family:var(--mono);font-weight:700;font-size:.68rem;padding:6px 10px;border-radius:999px;border:2px solid var(--yellow);box-shadow:0 3px 0 rgba(0,0,0,.3);cursor:pointer;}
+#levelPill.bump{animation:levelBump .4s ease;}
+@keyframes levelBump{0%{transform:scale(1);}50%{transform:scale(1.3);}100%{transform:scale(1);}}
+#catchCount{position:fixed;top:14px;left:16px;z-index:200;background:var(--panel);border:2px solid var(--panel-line);border-radius:999px;padding:5px 12px;font-family:var(--mono);font-size:.72rem;font-weight:700;box-shadow:0 3px 0 rgba(0,0,0,.15);}
+.levelup-toast{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%) scale(.6);z-index:300;font-family:var(--display);font-size:clamp(.8rem,3vw,1.3rem);color:#fff;text-align:center;text-shadow:3px 3px 0 var(--red),0 0 30px rgba(255,203,5,.8);opacity:0;pointer-events:none;}
+.levelup-toast.show{animation:levelToast 1.6s ease forwards;}
+@keyframes levelToast{0%{opacity:0;transform:translate(-50%,-50%) scale(.5);}15%{opacity:1;transform:translate(-50%,-50%) scale(1.1);}30%{transform:translate(-50%,-50%) scale(1);}80%{opacity:1;}100%{opacity:0;transform:translate(-50%,-60%) scale(1);}}
+
+/* ============ PRELOADER (short, with hard fail-safe) ============ */
+#preloader{position:fixed;inset:0;z-index:999;background:var(--red);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;transition:opacity .5s ease,visibility .5s ease;}
+#preloader.hide{opacity:0;visibility:hidden;pointer-events:none;}
+#preloader .pball{width:96px;height:96px;position:relative;}
+#preloader .pball.shake{animation:shakeball .35s ease-in-out 3;}
+#preloader .half{position:absolute;left:0;width:100%;height:50%;border:4px solid #1B1B1F;overflow:hidden;}
+#preloader .top{top:0;background:#fff;border-radius:96px 96px 0 0;border-bottom:0;}
+#preloader .bottom{bottom:0;background:#fff;border-radius:0 0 96px 96px;border-top:0;}
+#preloader .mid-bar{position:absolute;top:calc(50% - 5px);left:0;width:100%;height:10px;background:#1B1B1F;z-index:3;}
+#preloader .button{position:absolute;top:50%;left:50%;width:32px;height:32px;border-radius:50%;background:#fff;border:4px solid #1B1B1F;transform:translate(-50%,-50%);z-index:4;box-shadow:inset 0 0 0 5px var(--red);}
+#preloader .loadtext{font-family:var(--display);font-size:.65rem;color:#fff;letter-spacing:.08em;}
+@keyframes shakeball{0%,100%{transform:rotate(0);}25%{transform:rotate(-14deg);}75%{transform:rotate(12deg);}}
+
+/* ============ BG: clouds + floating balls + pikachu bolt ============ */
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.cloud{position:absolute;opacity:.5;animation:driftCloud linear infinite;}
+.cloud svg{width:100%;height:100%;}
+@keyframes driftCloud{from{transform:translateX(-10vw);}to{transform:translateX(110vw);}}
+.float-ball{position:absolute;width:22px;height:22px;opacity:.12;bottom:-40px;animation:floatUp linear infinite;}
+@keyframes floatUp{0%{transform:translateY(0) rotate(0);}100%{transform:translateY(-115vh) rotate(360deg);}}
+.bolt{position:absolute;opacity:0;animation:boltFlash 7s ease-in-out infinite;}
+@keyframes boltFlash{0%,92%,100%{opacity:0;}93%{opacity:.9;}94%{opacity:.1;}95%{opacity:.8;}97%{opacity:0;}}
+
+/* ============ REVEAL ============ */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.in-view{opacity:1;transform:translateY(0);}
+.reveal.d1{transition-delay:.08s;} .reveal.d2{transition-delay:.16s;} .reveal.d3{transition-delay:.24s;}
+
+/* ============ NAV ============ */
+nav{position:sticky;top:6px;margin-top:6px;z-index:80;background:color-mix(in srgb, var(--cream) 85%, transparent);backdrop-filter:blur(8px);border-bottom:2px solid var(--ink);}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1rem;}
+.brand .ball{width:22px;height:22px;transition:transform .6s ease;}
+.brand:hover .ball{transform:rotate(360deg);}
+nav ul{list-style:none;display:flex;gap:24px;font-size:.9rem;font-weight:500;}
+nav ul li a{position:relative;padding:4px 0;}
+nav ul li a::after{content:"";position:absolute;left:0;bottom:-2px;width:0;height:2px;background:var(--red);transition:width .25s ease;}
+nav ul li a:hover::after{width:100%;}
+.navbtn{background:var(--ink);color:var(--cream);padding:8px 16px;border-radius:999px;font-size:.82rem;font-weight:600;}
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;}
+.hamburger span{width:22px;height:2px;background:var(--ink);border-radius:2px;}
+@media (max-width:760px){
+  nav ul{position:fixed;top:0;right:0;height:100vh;width:min(72vw,300px);background:var(--panel);flex-direction:column;justify-content:center;align-items:flex-start;padding:0 32px;gap:22px;transform:translateX(100%);transition:transform .35s ease;z-index:90;border-left:2px solid var(--ink);}
+  nav ul.open{transform:translateX(0);}
+  .hamburger{display:flex;}
+  .navbtn{display:none;}
+}
+
+/* ============ HERO ============ */
+header.hero{padding:60px 0 40px;position:relative;}
+.device{background:var(--red);border-radius:28px;border:3px solid var(--ink);box-shadow:0 14px 0 var(--red-dark),0 22px 40px rgba(0,0,0,.25);padding:26px;position:relative;animation:deviceIn .8s cubic-bezier(.2,.9,.3,1) both;}
+@keyframes deviceIn{from{opacity:0;transform:translateY(30px) scale(.97);}to{opacity:1;transform:none;}}
+.device-top{display:flex;align-items:center;gap:14px;padding:4px 6px 20px;}
+.lens{width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#bfe9ff,var(--blue) 55%,#1c4d70 100%);border:3px solid var(--ink);box-shadow:0 0 0 4px rgba(255,255,255,.55);}
+.dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--ink);}
+.dot.y{background:var(--yellow);animation:blink 1.8s step-start infinite;} .dot.g{background:#35C759;} .dot.r{background:#FF5A4E;}
+@keyframes blink{50%{opacity:.25;}}
+.screen{background:var(--cream);border:3px solid var(--ink);border-radius:14px;padding:30px;position:relative;overflow:hidden;}
+.trainer-id{font-family:var(--mono);color:var(--red);font-weight:700;letter-spacing:.08em;font-size:.8rem;}
+.hero h1{font-size:clamp(2rem,5.4vw,3.4rem);line-height:1.06;margin:8px 0 6px;}
+.hero h1 .name{display:block;color:var(--red);background:linear-gradient(90deg,var(--red),var(--yellow),var(--red));background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 4s linear infinite;}
+@keyframes shimmer{to{background-position:200% center;}}
+.hero .tagline{font-family:var(--mono);font-size:1.05rem;color:var(--ink-soft);margin:10px 0 8px;min-height:1.6em;}
+.hero .tagline .cursor-blink{display:inline-block;width:2px;background:var(--ink-soft);height:1em;vertical-align:-2px;animation:blinkc 1s step-start infinite;}
+@keyframes blinkc{50%{opacity:0;}}
+.role-tags{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 22px;}
+.role-tag{font-family:var(--mono);font-size:.72rem;background:var(--panel);border:2px solid var(--panel-line);padding:5px 11px;border-radius:999px;}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:999px;font-weight:600;font-size:.9rem;border:2px solid var(--ink);cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;background:transparent;color:var(--ink);}
+.btn:hover{transform:translateY(-3px);box-shadow:0 6px 0 rgba(27,27,31,.2);}
+.btn:active{transform:translateY(0);box-shadow:none;}
+.btn.primary{background:var(--ink);color:var(--cream);}
+
+/* ============ SECTIONS ============ */
+section{padding:80px 0;position:relative;z-index:1;}
+.section-tag{font-family:var(--display);font-size:.6rem;color:var(--red);letter-spacing:.05em;display:inline-block;margin-bottom:14px;}
+.section-title{font-size:clamp(1.5rem,3.2vw,2.2rem);margin-bottom:10px;}
+.section-sub{color:var(--ink-soft);max-width:60ch;margin-bottom:40px;}
+
+/* ============ POKEDEX ENTRY ============ */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start;}
+.pokedex-panel{background:var(--panel);border:2px solid var(--panel-line);border-radius:var(--radius);padding:26px;box-shadow:0 6px 0 var(--panel-line);}
+.pokedex-panel dl{display:grid;grid-template-columns:auto 1fr;gap:10px 18px;margin-top:14px;}
+.pokedex-panel dt{font-family:var(--mono);font-size:.74rem;color:var(--red);font-weight:700;}
+.pokedex-panel dd{font-size:.9rem;color:var(--ink-soft);}
+.ability-list{list-style:none;margin-top:14px;display:flex;flex-direction:column;gap:8px;}
+.ability-list li{font-family:var(--mono);font-size:.85rem;}
+.ability-list li::before{content:"✓ ";color:var(--red);font-weight:700;}
+.level-block{display:flex;align-items:center;gap:14px;margin-top:16px;}
+.level-badge{font-family:var(--display);font-size:.85rem;background:var(--ink);color:var(--cream);padding:8px 14px;border-radius:8px;}
+@media (max-width:800px){.about-grid{grid-template-columns:1fr;}}
+
+/* ============ GYM BADGES (skills) ============ */
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;}
+.gym-badge{background:var(--panel);border:2px solid var(--panel-line);border-radius:14px;padding:16px;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;text-align:left;}
+.gym-badge:hover{transform:translateY(-4px);box-shadow:0 8px 0 rgba(0,0,0,.12);}
+.gym-badge .gb-top{display:flex;align-items:center;gap:10px;}
+.gym-badge .gem{width:20px;height:20px;border-radius:4px;transform:rotate(45deg);background:linear-gradient(135deg,var(--yellow),var(--red));border:2px solid var(--ink);flex:none;}
+.gym-badge h4{font-size:.98rem;}
+.gym-badge .gb-detail{max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease,opacity .3s ease,margin-top .3s ease;}
+.gym-badge.open .gb-detail{max-height:200px;opacity:1;margin-top:12px;}
+.gb-detail p{font-size:.82rem;color:var(--ink-soft);margin-bottom:8px;}
+.confidence-bar{height:8px;border-radius:6px;background:var(--line);overflow:hidden;}
+.confidence-bar i{display:block;height:100%;background:var(--red);border-radius:6px;width:0;transition:width 1s ease;}
+.gym-badge.open .confidence-bar i{width:var(--conf);}
+
+/* ============ STARTER POKEMON EASTER EGG ============ */
+.starter-card{background:linear-gradient(135deg,#F0801A,#E3350D);border:2px solid var(--ink);border-radius:var(--radius);padding:26px;color:#fff;display:flex;gap:20px;align-items:center;box-shadow:0 6px 0 var(--ink);}
+.starter-card svg{width:74px;height:74px;flex:none;filter:drop-shadow(0 4px 4px rgba(0,0,0,.3));}
+.starter-card h4{font-family:var(--display);font-size:.9rem;margin-bottom:8px;}
+.starter-card .st-line{font-family:var(--mono);font-size:.82rem;opacity:.92;margin-top:4px;}
+
+/* ============ PARTY ============ */
+.party-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px;margin-top:36px;}
+.party-card{background:var(--panel);border:2px solid var(--panel-line);border-radius:14px;padding:18px;text-align:center;position:relative;overflow:hidden;transition:transform .25s ease;cursor:pointer;}
+.party-card:hover{transform:translateY(-6px) rotate(-1deg);}
+.party-card .emoji{font-size:2.1rem;display:block;margin-bottom:8px;}
+.party-card h5{font-size:.92rem;}
+.party-card small{font-family:var(--mono);font-size:.68rem;color:var(--ink-soft);}
+.party-stats{max-height:0;overflow:hidden;opacity:0;transition:max-height .35s ease,opacity .3s ease,margin-top .3s ease;text-align:left;}
+.party-card:hover .party-stats, .party-card:focus-within .party-stats{max-height:120px;opacity:1;margin-top:10px;}
+.party-stats .ps-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.66rem;margin-bottom:5px;}
+
+/* ============ JOURNEY MAP ============ */
+.map-frame{position:relative;width:100%;aspect-ratio:2.6/1;min-height:260px;border:3px solid var(--ink);border-radius:var(--radius);overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.10) 25%,transparent 25%) 0 0/28px 28px,linear-gradient(135deg,rgba(255,255,255,.10) 25%,transparent 25%) 14px 14px/28px 28px,linear-gradient(45deg,#6BBF5A,#4FA843 60%,#3F9436);box-shadow:0 8px 0 var(--ink);}
+.route-svg{position:absolute;inset:0;width:100%;height:100%;}
+.route-path{fill:none;stroke:#F4F4EC;stroke-width:9;stroke-linecap:round;stroke-dasharray:2 20;opacity:.85;}
+.map-node{position:absolute;transform:translate(-50%,-50%);text-align:center;cursor:pointer;z-index:3;background:none;border:none;padding:0;}
+.map-node .pin{width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;background:#F4F4EC;transition:transform .25s ease;box-shadow:0 4px 0 rgba(0,0,0,.25);}
+.map-node .pin span{transform:rotate(45deg);font-size:14px;}
+.map-node.gym .pin{background:var(--yellow);}
+.map-node.current .pin{background:var(--red);}
+.map-node:hover .pin{transform:rotate(-45deg) scale(1.15) translateY(-3px);}
+.map-node.visited .pin{box-shadow:0 4px 0 rgba(0,0,0,.25),0 0 0 4px rgba(255,203,5,.55);}
+.map-node .m-label{margin-top:5px;font-family:var(--mono);font-size:.64rem;font-weight:700;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,.6);white-space:nowrap;}
+.trainer-sprite{position:absolute;width:24px;height:24px;transform:translate(-50%,-100%);transition:left .9s cubic-bezier(.4,0,.2,1),top .9s cubic-bezier(.4,0,.2,1);z-index:4;filter:drop-shadow(0 3px 2px rgba(0,0,0,.4));}
+.dialogue-box{margin-top:18px;background:var(--panel);border:3px solid var(--panel-line);border-radius:10px;padding:16px 20px;position:relative;min-height:76px;font-family:var(--mono);font-size:.9rem;opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .3s ease,transform .3s ease;}
+.dialogue-box.show{opacity:1;transform:none;pointer-events:auto;}
+.dialogue-box .d-name{font-family:var(--display);font-size:.6rem;color:var(--red);margin-bottom:10px;display:block;}
+
+/* ============ PROJECTS / CUSTOM POKEBALLS ============ */
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:28px;}
+.capsule{text-align:center;}
+.pokeball-wrap{position:relative;width:100px;height:100px;margin:0 auto 16px;}
+.pokeball{width:100px;height:100px;position:relative;cursor:pointer;filter:drop-shadow(0 8px 10px rgba(0,0,0,.18));transition:transform .25s ease;}
+.capsule:not(.open):hover .pokeball{transform:translateY(-6px) scale(1.05);}
+.capsule.shaking .pokeball{animation:capShake .3s ease-in-out 3;}
+@keyframes capShake{0%,100%{transform:rotate(0);}25%{transform:rotate(-13deg);}75%{transform:rotate(10deg);}}
+.pokeball .half{position:absolute;left:0;width:100%;height:50%;border:4px solid var(--ink);overflow:hidden;transition:transform .5s cubic-bezier(.34,1.56,.64,1);}
+.pokeball .top{top:0;border-radius:100px 100px 0 0;border-bottom:0;transform-origin:top;}
+.pokeball .bottom{bottom:0;background:#fff;border-radius:0 0 100px 100px;border-top:0;transform-origin:bottom;}
+.pokeball .mid-bar{position:absolute;top:calc(50% - 5px);left:0;width:100%;height:10px;background:var(--ink);z-index:3;}
+.pokeball .button{position:absolute;top:50%;left:50%;width:32px;height:32px;border-radius:50%;background:#fff;border:4px solid var(--ink);transform:translate(-50%,-50%);z-index:4;transition:transform .4s ease;}
+.capsule.open .top{transform:translateY(-115%) rotate(-8deg);}
+.capsule.open .bottom{transform:translateY(115%) rotate(8deg);}
+.capsule.open .button{transform:translate(-50%,-50%) scale(0);}
+.ball-luxury .top{background:linear-gradient(160deg,#3a2f14,#B8912F);} .ball-luxury .button{box-shadow:inset 0 0 0 5px #B8912F;}
+.ball-dive .top{background:linear-gradient(160deg,#1c5aa8,#3B82C4);} .ball-dive .button{box-shadow:inset 0 0 0 5px #3B82C4;}
+.ball-premier .top{background:#fff;} .ball-premier .button{box-shadow:inset 0 0 0 5px var(--red);}
+.gotcha{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-family:var(--display);font-size:.55rem;color:var(--yellow);text-shadow:2px 2px 0 var(--ink);pointer-events:none;z-index:5;white-space:nowrap;opacity:0;}
+.capsule.open .gotcha{animation:gotchaPop .9s ease forwards;}
+@keyframes gotchaPop{0%{opacity:0;transform:translate(-50%,-50%) scale(0);}40%{opacity:1;transform:translate(-50%,-70%) scale(1.15);}70%{transform:translate(-50%,-70%) scale(1);}100%{opacity:0;transform:translate(-50%,-95%) scale(.9);}}
+.sparkle{position:absolute;width:6px;height:6px;background:var(--yellow);border-radius:50%;top:50%;left:50%;opacity:0;pointer-events:none;}
+.capsule.open .sparkle{animation:sparkleBurst .7s ease forwards;}
+@keyframes sparkleBurst{0%{opacity:1;transform:translate(-50%,-50%) translate(0,0) scale(1);}100%{opacity:0;transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(0);}}
+.capsule .no{font-family:var(--mono);font-weight:700;color:var(--red);font-size:.78rem;}
+.capsule h3{font-size:1.02rem;margin:4px 0 2px;}
+.capsule .hint{font-size:.76rem;color:var(--ink-soft);font-family:var(--mono);}
+.proj-detail{max-height:0;overflow:hidden;opacity:0;margin-top:0;transition:max-height .5s ease,opacity .4s ease,margin-top .4s ease;background:var(--panel);border:2px solid var(--panel-line);border-radius:14px;text-align:left;}
+.capsule.open .proj-detail{max-height:460px;opacity:1;margin-top:16px;padding:18px;}
+.proj-detail p{font-size:.84rem;color:var(--ink-soft);margin:8px 0 12px;}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.tag{font-family:var(--mono);font-size:.66rem;background:var(--cream);border:1px solid var(--line);padding:3px 8px;border-radius:6px;}
+
+/* ============ POKEDEX COMPLETION ============ */
+.stat-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;}
+.stat-box{background:var(--panel);border:2px solid var(--panel-line);border-radius:14px;padding:22px;text-align:center;}
+.stat-box .big-num{font-family:var(--display);font-size:1.7rem;color:var(--red);display:block;margin-bottom:8px;}
+.stat-box .stat-label{font-family:var(--mono);font-size:.7rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;}
+
+/* ============ BATTLE STATS ============ */
+.battle-ui{background:var(--ink);color:var(--cream);border-radius:var(--radius);padding:30px;}
+.hp-row{margin-bottom:18px;}
+.hp-row:last-child{margin-bottom:0;}
+.hp-top{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.8rem;margin-bottom:6px;}
+.hp-bar{height:14px;background:#333;border:2px solid #555;border-radius:4px;overflow:hidden;}
+.hp-bar i{display:block;height:100%;background:linear-gradient(90deg,#35C759,#8CE05A);width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1);}
+
+/* ============ ACHIEVEMENTS ============ */
+.achieve-list{display:flex;flex-direction:column;gap:12px;}
+.achieve-row{display:flex;align-items:center;gap:14px;background:var(--panel);border:2px solid var(--panel-line);border-radius:12px;padding:14px 18px;opacity:0;transform:translateX(-16px);transition:opacity .5s ease,transform .5s ease;}
+.achieve-row.show{opacity:1;transform:none;}
+.achieve-row .trophy{font-size:1.3rem;}
+.achieve-row span{font-family:var(--mono);font-size:.86rem;}
+
+/* ============ PROJECTS-COMPLETE MODAL ============ */
+.complete-modal{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;background:rgba(27,27,31,.6);opacity:0;pointer-events:none;transition:opacity .3s ease;}
+.complete-modal.show{opacity:1;pointer-events:auto;}
+.complete-card{background:var(--panel);border:3px solid var(--panel-line);border-radius:var(--radius);padding:32px;max-width:340px;text-align:center;transform:scale(.7);transition:transform .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 10px 0 var(--panel-line);}
+.complete-modal.show .complete-card{transform:scale(1);}
+.complete-card .c-title{font-family:var(--display);font-size:.85rem;color:var(--red);margin-bottom:14px;line-height:1.7;}
+.complete-card p{color:var(--ink-soft);font-size:.86rem;margin-bottom:18px;}
+
+/* ============ SHINY RAYQUAZA + KONAMI ============ */
+.shiny-rain{position:fixed;inset:0;z-index:998;pointer-events:none;overflow:hidden;}
+.shiny-drop{position:absolute;top:-30px;font-size:20px;animation:shinyFall linear forwards;}
+@keyframes shinyFall{to{transform:translateY(110vh) rotate(360deg);}}
+#rayquaza{position:fixed;top:20%;left:-200px;width:180px;z-index:998;pointer-events:none;filter:drop-shadow(0 0 14px rgba(52,220,150,.7));}
+#rayquaza.fly{animation:rayFly 3.2s ease-in-out forwards;}
+@keyframes rayFly{0%{left:-200px;top:20%;}50%{top:32%;}100%{left:110%;top:16%;}}
+.easter-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);z-index:999;background:var(--ink);color:var(--cream);font-family:var(--mono);font-size:.78rem;padding:12px 20px;border-radius:999px;border:2px solid var(--yellow);opacity:0;transition:opacity .4s ease,transform .4s ease;text-align:center;max-width:88vw;}
+.easter-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.thunder-flash{position:fixed;inset:0;background:#fff;z-index:997;opacity:0;pointer-events:none;}
+.thunder-flash.pop{animation:tflash .35s ease;}
+@keyframes tflash{0%{opacity:0;}15%{opacity:.9;}100%{opacity:0;}}
+.flame-burst{position:fixed;z-index:997;pointer-events:none;font-size:2.4rem;opacity:0;}
+.flame-burst.pop{animation:fpop .8s ease forwards;}
+@keyframes fpop{0%{opacity:1;transform:translateY(0) scale(.6);}100%{opacity:0;transform:translateY(-70px) scale(1.6);}}
+
+/* ============ CONTACT / POKEMON CENTER ============ */
+.pc-panel{background:var(--ink);color:var(--cream);border-radius:var(--radius);padding:44px;display:grid;grid-template-columns:1fr 1fr;gap:38px;align-items:center;}
+.pc-panel h2{font-size:clamp(1.4rem,3vw,1.9rem);margin-bottom:12px;}
+.pc-panel p{color:#c9c9d1;max-width:42ch;}
+.contact-links{display:flex;flex-direction:column;gap:14px;}
+.contact-links a{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.06);padding:14px 18px;border-radius:12px;font-weight:600;border:1px solid rgba(255,255,255,.14);transition:background .2s ease,transform .2s ease;}
+.contact-links a:hover{background:rgba(255,255,255,.14);transform:translateX(6px);}
+@media (max-width:800px){.pc-panel{grid-template-columns:1fr;padding:28px;}}
+
+/* ============ SKILLS TIMELINE ============ */
+.timeline-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:26px 0;}
+.timeline-node{flex:1;min-width:110px;text-align:center;position:relative;padding:6px 14px;}
+.timeline-node .t-year{font-family:var(--mono);font-size:.7rem;color:var(--red);font-weight:700;}
+.timeline-node .t-skill{font-family:var(--display);font-size:.6rem;margin-top:10px;background:var(--panel);border:2px solid var(--panel-line);border-radius:10px;padding:12px 6px;}
+.timeline-node:not(:last-child)::after{content:"→";position:absolute;right:-6px;top:50%;transform:translateY(-50%);color:var(--ink-soft);font-size:1.2rem;}
+@media (max-width:760px){.timeline-row{flex-direction:column;} .timeline-node:not(:last-child)::after{content:"↓";right:auto;top:auto;bottom:-16px;left:50%;transform:translateX(-50%);}}
+
+/* ============ SERVICES ============ */
+.services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}
+.service-card{background:var(--panel);border:2px solid var(--panel-line);border-radius:14px;padding:20px;transition:transform .2s ease;}
+.service-card:hover{transform:translateY(-4px);}
+.service-card .s-icon{font-size:1.5rem;margin-bottom:8px;display:block;}
+.service-card h5{font-size:.94rem;margin-bottom:4px;}
+.service-card p{font-size:.78rem;color:var(--ink-soft);}
+
+/* ============ PROJECT SCREENSHOTS + DEMO ============ */
+.shot-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;}
+.shot-frame{width:64px;height:120px;border:2px solid var(--panel-line);border-radius:8px;background:linear-gradient(135deg,var(--cream),var(--line));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.52rem;color:var(--ink-soft);text-align:center;padding:4px;flex:none;}
+.demo-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.76rem;background:var(--ink);color:var(--cream);padding:8px 14px;border-radius:999px;margin-top:4px;cursor:pointer;border:none;}
+
+/* ============ FEATURED PROJECT ============ */
+/*.featured-wrap{display:grid;grid-template-columns:220px 1fr;gap:40px;align-items:start;}
+.phone-mock{width:200px;height:410px;border:9px solid var(--ink);border-radius:32px;background:var(--panel);position:relative;box-shadow:0 10px 0 rgba(0,0,0,.15);margin:0 auto;}
+.phone-mock::before{content:"";position:absolute;top:13px;left:50%;transform:translateX(-50%);width:46px;height:5px;background:var(--ink);border-radius:4px;}
+.phone-mock .phone-screen{position:absolute;inset:24px 7px 7px 7px;border-radius:14px;background:linear-gradient(160deg,#1A2340,#2b3968);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--mono);font-size:.68rem;text-align:center;padding:10px;}
+.featured-detail h4{font-size:.82rem;color:var(--red);font-family:var(--mono);margin:16px 0 8px;}
+.featured-detail h4:first-child{margin-top:0;}
+.featured-list{list-style:none;display:flex;flex-direction:column;gap:6px;}
+.featured-list li{font-size:.86rem;color:var(--ink-soft);}
+.featured-list li::before{content:"› ";color:var(--red);}
+.tech-pill-row{display:flex;flex-wrap:wrap;gap:6px;}
+@media (max-width:800px){.featured-wrap{grid-template-columns:1fr;}}*/
+/* ===========================
+   FEATURED PROJECT
+=========================== */
+
+.featured-wrap{
+    display:grid;
+    grid-template-columns:280px 1fr;
+    gap:40px;
+    align-items:start;
+}
+
+/* Phone Frame */
+.phone-mock{
+    width:260px;
+    height:530px;
+    border:9px solid var(--ink);
+    border-radius:36px;
+    background:var(--panel);
+    position:relative;
+    margin:0 auto;
+    box-shadow:
+        0 20px 45px rgba(0,0,0,.25),
+        0 10px 0 rgba(0,0,0,.15);
+}
+
+/* Speaker */
+.phone-mock::before{
+    content:"";
+    position:absolute;
+    top:14px;
+    left:50%;
+    transform:translateX(-50%);
+    width:60px;
+    height:6px;
+    background:var(--ink);
+    border-radius:20px;
+}
+
+/* Phone Screen */
+.phone-mock .phone-screen{
+    position:absolute;
+    inset:26px 8px 8px 8px;
+    border-radius:22px;
+    overflow:hidden;
+    background:#000;
+}
+
+/* Screenshot */
+.phone-screen img{
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:cover;      /* Use contain if you don't want cropping */
+    transition:transform .4s ease;
+}
+
+/* Small zoom on hover */
+.phone-mock:hover img{
+    transform:scale(1.02);
+}
+
+/* ===========================
+   DETAILS
+=========================== */
+
+.featured-detail h4{
+    font-size:.82rem;
+    color:var(--red);
+    font-family:var(--mono);
+    margin:16px 0 8px;
+}
+
+.featured-detail h4:first-child{
+    margin-top:0;
+}
+
+.featured-list{
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.featured-list li{
+    font-size:.9rem;
+    color:var(--ink-soft);
+    line-height:1.6;
+}
+
+.featured-list li::before{
+    content:"› ";
+    color:var(--red);
+    font-weight:bold;
+}
+
+.tech-pill-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media (max-width:800px){
+
+    .featured-wrap{
+        grid-template-columns:1fr;
+        text-align:center;
+    }
+
+    .phone-mock{
+        width:240px;
+        height:490px;
+        margin-bottom:25px;
+    }
+
+    .tech-pill-row{
+        justify-content:center;
+    }
+}
+
+/* ============ GITHUB STATS ============ */
+.gh-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:24px;}
+.gh-card{background:var(--panel);border:2px solid var(--panel-line);border-radius:14px;padding:18px;text-align:center;}
+.gh-card .gh-num{font-family:var(--display);font-size:1.3rem;color:var(--red);display:block;margin-bottom:6px;}
+.gh-card .gh-label{font-family:var(--mono);font-size:.68rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;}
+.contrib-graph{display:grid;grid-template-columns:repeat(26,1fr);gap:3px;}
+.contrib-cell{aspect-ratio:1;border-radius:2px;background:var(--line);}
+.contrib-cell.l1{background:#9be9a8;} .contrib-cell.l2{background:#40c463;} .contrib-cell.l3{background:#30a14e;} .contrib-cell.l4{background:#216e39;}
+.gh-note{font-family:var(--mono);font-size:.72rem;color:var(--ink-soft);margin-top:12px;}
+
+/* ============ RESUME PREVIEW ============ */
+.resume-wrap{display:flex;gap:30px;align-items:center;flex-wrap:wrap;}
+.resume-frame{width:100%;max-width:300px;aspect-ratio:8.5/11;border:3px solid var(--panel-line);border-radius:10px;background:var(--panel);box-shadow:0 6px 0 var(--panel-line);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.76rem;color:var(--ink-soft);text-align:center;padding:24px;flex:none;}
+
+/* ============ RESPONSIVE SHOWCASE ============ */
+.responsive-row{display:flex;align-items:flex-end;gap:22px;flex-wrap:wrap;justify-content:center;}
+.device-frame{background:var(--panel);border:3px solid var(--panel-line);border-radius:10px;position:relative;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.68rem;color:var(--ink-soft);text-align:center;padding:10px;}
+.device-frame.desktop{width:290px;height:180px;}
+.device-frame.tablet{width:150px;height:200px;}
+.device-frame.phone{width:82px;height:170px;border-radius:16px;}
+.device-label{font-family:var(--mono);font-size:.66rem;color:var(--ink-soft);text-align:center;margin-top:8px;}
+
+/* ============ LIVE PROTOTYPE EMBED (merge addition) ============ */
+.embed-frame-wrap{border:3px solid var(--panel-line);border-radius:var(--radius);overflow:hidden;box-shadow:0 8px 0 var(--panel-line);background:#F0EDF8;}
+.embed-frame-wrap iframe{display:block;width:100%;height:1500px;border:none;background:#F0EDF8;}
+.embed-note{font-family:var(--mono);font-size:.74rem;color:var(--ink-soft);margin-top:12px;}
+
+footer{text-align:center;padding:30px 0 46px;font-family:var(--mono);font-size:.76rem;color:var(--ink-soft);position:relative;z-index:1;}
+#muteToggle{display:flex;align-items:center;gap:6px;}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important;}
+}
+</style>
+</head>
+<body class="locked">
+
+<div id="expBarWrap"><div id="expBarFill"></div></div>
+<div id="catchCount">🎒 0/3 caught</div>
+<div id="hudRight">
+  <button class="hud-btn" id="ultraBallToggle" title="Ultra Ball — toggle night mode">🌑 Dark</button>
+  <!--<button class="hud-btn" id="muteToggle" title="Toggle chiptune sound">🔊 Sound</button>-->
+  <div class="hud-btn" id="levelPill">LV.1</div>
+</div>
+<div class="levelup-toast" id="levelupToast">LEVEL UP!</div>
+
+<div id="preloader">
+  <div class="pball" id="preball">
+    <div class="half top"></div><div class="half bottom"></div><div class="mid-bar"></div><div class="button"></div>
+  </div>
+  <div class="loadtext">LOADING TRAINER DEEP...</div>
+</div>
+
+<div class="bg-layer" id="bgLayer"></div>
+<div class="shiny-rain" id="shinyRain"></div>
+<div class="easter-toast" id="easterToast"></div>
+<div class="thunder-flash" id="thunderFlash"></div>
+<svg id="rayquaza" viewBox="0 0 200 90" xmlns="http://www.w3.org/2000/svg">
+  <path d="M10 50 Q40 10 80 40 T150 30 Q175 25 195 45 Q175 40 155 48 T90 55 Q50 65 10 50Z" fill="#34DC96" stroke="#1B1B1F" stroke-width="3"/>
+  <circle cx="185" cy="42" r="7" fill="#FFD84D" stroke="#1B1B1F" stroke-width="2"/>
+</svg>
+
+<nav>
+  <div class="wrap">
+    <div class="brand">
+      <svg class="ball" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#E3350D" stroke="#1B1B1F" stroke-width="3"/><path d="M2 20a18 18 0 0 1 36 0" fill="#E3350D"/><path d="M2 20a18 18 0 0 0 36 0" fill="#fff"/><rect x="2" y="17" width="36" height="6" fill="#1B1B1F"/><circle cx="20" cy="20" r="6" fill="#fff" stroke="#1B1B1F" stroke-width="3"/></svg>
+      TRAINER DEEP
+    </div>
+    <ul id="navList">
+      <li><a href="#about">Pokédex</a></li>
+      <li><a href="#badges">Badges</a></li>
+      <li><a href="#timeline">Timeline</a></li>
+      <li><a href="#journey">Journey</a></li>
+      <li><a href="#featured">Featured</a></li>
+      <li><a href="#live-prototype">Live Demo</a></li>
+      <li><a href="#projects">Caught 'Em</a></li>
+      <li><a href="#github">GitHub</a></li>
+      <li><a href="#contact">Pokémon Center</a></li>
+    </ul>
+
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="device">
+      <div class="device-top">
+        <div class="lens"></div><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      </div>
+      <div class="screen">
+        <div class="trainer-id">⚡ WELCOME TRAINER! · ID #0001</div>
+        <h1>Deep Chaudhari<span class="name" style="display:none"></span></h1>
+        <div class="tagline" id="typewriter"><span class="cursor-blink"></span></div>
+        <div class="role-tags">
+          <span class="role-tag">MCA Student</span>
+          <span class="role-tag">Full Stack Developer</span>
+          <span class="role-tag">Flutter Developer</span>
+          <span class="role-tag">React Learner</span>
+        </div>
+        <div class="cta-row">
+          <a class="btn primary" href="#about">View Pokédex</a>
+          <a class="btn" href="#contact">⚔ Challenge Me</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="about">
+  <div class="wrap">
+    <span class="section-tag reveal">// POKÉDEX ENTRY</span>
+    <h2 class="section-title reveal">Trainer Card</h2>
+    <p class="section-sub reveal">Data logged by the Pokédex on trainer Deep Chaudhari.</p>
+    <div class="about-grid">
+      <div class="pokedex-panel reveal d1">
+        <dl>
+          <dt>NAME</dt><dd>Deep Chaudhari</dd>
+          <dt>TYPE</dt><dd>Developer</dd>
+          <dt>REGION</dt><dd>Gujarat</dd>
+          <dt>CLASS</dt><dd>MCA Student, Full Stack Developer</dd>
+        </dl>
+        <div class="level-block">
+          <div class="level-badge">LV. 23</div>
+          <span style="font-family:var(--mono);font-size:.8rem;color:var(--ink-soft);">still gaining XP every project</span>
+        </div>
+      </div>
+      <div class="pokedex-panel reveal d2">
+        <p style="font-family:var(--mono);font-size:.8rem;color:var(--red);font-weight:700;">ABILITIES</p>
+        <ul class="ability-list">
+          <li>Flutter</li><li>Firebase</li><li>React</li><li>Java</li><li>SQL</li><li>Problem Solving</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="badges" style="background:var(--panel);border-top:2px solid var(--panel-line);border-bottom:2px solid var(--panel-line);">
+  <div class="wrap">
+    <span class="section-tag reveal">// GYM BADGES</span>
+    <h2 class="section-title reveal">Every badge is a skill I've earned</h2>
+    <p class="section-sub reveal">Tap a badge to see experience, projects it shows up in, and how confident I am with it.</p>
+    <div class="badge-grid">
+      <button class="gym-badge reveal" data-conf="90%">
+        <div class="gb-top"><div class="gem"></div><h4>Flutter Badge</h4></div>
+        <div class="gb-detail">
+          <p>Used across GharTak, WashInn, and MintiGrow — screens, navigation, state, custom design systems.</p>
+          <div class="confidence-bar"><i style="--conf:90%"></i></div>
+        </div>
+      </button>
+      <button class="gym-badge reveal" data-conf="82%">
+        <div class="gb-top"><div class="gem"></div><h4>Firebase Badge</h4></div>
+        <div class="gb-detail">
+          <p>Auth, realtime data, and backend wiring for Flutter apps in production.</p>
+          <div class="confidence-bar"><i style="--conf:82%"></i></div>
+        </div>
+      </button>
+      <button class="gym-badge reveal" data-conf="68%">
+        <div class="gb-top"><div class="gem"></div><h4>React Badge</h4></div>
+        <div class="gb-detail">
+          <p>Currently leveling this up — building component-driven UIs and learning the ecosystem properly.</p>
+          <div class="confidence-bar"><i style="--conf:68%"></i></div>
+        </div>
+      </button>
+      <button class="gym-badge reveal" data-conf="75%">
+        <div class="gb-top"><div class="gem"></div><h4>Java Badge</h4></div>
+        <div class="gb-detail">
+          <p>Core language foundation from coursework — OOP, data structures, problem solving.</p>
+          <div class="confidence-bar"><i style="--conf:75%"></i></div>
+        </div>
+      </button>
+      <button class="gym-badge reveal" data-conf="80%">
+        <div class="gb-top"><div class="gem"></div><h4>SQL Badge</h4></div>
+        <div class="gb-detail">
+          <p>Schema design and queries behind the admin panels on MintiGrow and GharTak.</p>
+          <div class="confidence-bar"><i style="--conf:80%"></i></div>
+        </div>
+      </button>
+      <button class="gym-badge reveal" data-conf="85%">
+        <div class="gb-top"><div class="gem"></div><h4>HTML/CSS Badge</h4></div>
+        <div class="gb-detail">
+          <p>Built and shipped multiple client sites and landing pages from scratch.</p>
+          <div class="confidence-bar"><i style="--conf:85%"></i></div>
+        </div>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section id="timeline">
+  <div class="wrap">
+    <span class="section-tag reveal">// SKILLS TIMELINE</span>
+    <h2 class="section-title reveal">How the stack grew</h2>
+    <p class="section-sub reveal">Year by year, what I picked up and when.</p>
+    <div class="timeline-row reveal">
+      <div class="timeline-node"><div class="t-year">2023</div><div class="t-skill">Java</div></div>
+      <div class="timeline-node"><div class="t-year">2024</div><div class="t-skill">Flutter</div></div>
+      <div class="timeline-node"><div class="t-year">2025</div><div class="t-skill">Firebase</div></div>
+      <div class="timeline-node"><div class="t-year">2026</div><div class="t-skill">React</div></div>
+      <div class="timeline-node"><div class="t-year">Now</div><div class="t-skill">Node.js</div></div>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--panel);border-top:2px solid var(--panel-line);border-bottom:2px solid var(--panel-line);">
+  <div class="wrap">
+    <span class="section-tag reveal">// SERVICES</span>
+    <h2 class="section-title reveal">What I can build for you</h2>
+    <p class="section-sub reveal">Real services, based on the client and college work I've already shipped.</p>
+    <div class="services-grid">
+      <div class="service-card reveal"><span class="s-icon">🌐</span><h5>Website Development</h5><p>Landing pages, portfolios, e-commerce fronts — built and delivered.</p></div>
+      <div class="service-card reveal"><span class="s-icon">📱</span><h5>Flutter Apps</h5><p>Cross-platform mobile apps, from UI to Firebase backend.</p></div>
+      <div class="service-card reveal"><span class="s-icon">🎨</span><h5>UI Design</h5><p>Custom design systems, not default component-library looks.</p></div>
+      <div class="service-card reveal"><span class="s-icon">🛠️</span><h5>Admin Panels</h5><p>PHP/MySQL dashboards with real auth security — bcrypt, CSRF protection.</p></div>
+      <div class="service-card reveal"><span class="s-icon">🔌</span><h5>Backend APIs</h5><p>Data flows and endpoints that connect an app to a working backend.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="starter">
+  <div class="wrap">
+    <span class="section-tag reveal">// STARTER POKÉMON</span>
+    <h2 class="section-title reveal">Every journey needs a starter</h2>
+    <div class="starter-card reveal">
+      <svg id="charmanderClick" viewBox="0 0 64 64" style="cursor:pointer;" tabindex="0" role="button" aria-label="Charmander — click for a flame effect">
+        <ellipse cx="32" cy="40" rx="20" ry="18" fill="#F0801A"/>
+        <circle cx="24" cy="34" r="4" fill="#1B1B1F"/><circle cx="40" cy="34" r="4" fill="#1B1B1F"/>
+        <path d="M46 46c6 2 10 10 6 18-4-4-8-6-10-6 2-4 3-8 4-12z" fill="#FFCB05"/>
+      </svg>
+      <div>
+        <h4>Starter Pokémon: Charmander</h4>
+        <div class="st-line">Ability: Flutter</div>
+        <div class="st-line">Reason: always evolving.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="party" style="background:var(--panel);border-top:2px solid var(--panel-line);border-bottom:2px solid var(--panel-line);">
+  <div class="wrap">
+    <span class="section-tag reveal">// PARTY</span>
+    <h2 class="section-title reveal">My current party</h2>
+    <p class="section-sub reveal">Each teammate represents a technology. Hover (or focus) to see their stats.</p>
+    <div class="party-grid">
+      <div class="party-card reveal" tabindex="0" id="pikachuClick">
+        <span class="emoji">⚡</span><h5>Pikachu</h5><small>React</small>
+        <div class="party-stats"><div class="ps-row"><span>Speed</span><span>Fast renders</span></div><div class="ps-row"><span>Trait</span><span>Component reuse</span></div></div>
+      </div>
+      <div class="party-card reveal" tabindex="0">
+        <span class="emoji">🔥</span><h5>Charizard</h5><small>Flutter</small>
+        <div class="party-stats"><div class="ps-row"><span>Power</span><span>Cross-platform</span></div><div class="ps-row"><span>Trait</span><span>Widget mastery</span></div></div>
+      </div>
+      <div class="party-card reveal" tabindex="0">
+        <span class="emoji">💧</span><h5>Blastoise</h5><small>Firebase</small>
+        <div class="party-stats"><div class="ps-row"><span>Defense</span><span>Solid backend</span></div><div class="ps-row"><span>Trait</span><span>Realtime sync</span></div></div>
+      </div>
+      <div class="party-card reveal" tabindex="0">
+        <span class="emoji">🌱</span><h5>Venusaur</h5><small>MySQL</small>
+        <div class="party-stats"><div class="ps-row"><span>Growth</span><span>Schema design</span></div><div class="ps-row"><span>Trait</span><span>Data integrity</span></div></div>
+      </div>
+      <div class="party-card reveal" tabindex="0">
+        <span class="emoji">🐲</span><h5>Dragonite</h5><small>System Design</small>
+        <div class="party-stats"><div class="ps-row"><span>Rarity</span><span>Big picture</span></div><div class="ps-row"><span>Trait</span><span>Architecture</span></div></div>
+      </div>
+      <div class="party-card reveal" tabindex="0">
+        <span class="emoji">👻</span><h5>Gengar</h5><small>Debugging 😂</small>
+        <div class="party-stats"><div class="ps-row"><span>Trick</span><span>Finds ghosts in logic</span></div><div class="ps-row"><span>Trait</span><span>Patience</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="journey">
+  <div class="wrap">
+    <span class="section-tag reveal">// JOURNEY</span>
+    <h2 class="section-title reveal">Route to Here</h2>
+    <p class="section-sub reveal">Tap a location — the trainer sprite walks over and tells the story.</p>
+    <div class="map-frame reveal">
+      <svg class="route-svg" viewBox="0 0 1000 400" preserveAspectRatio="none">
+        <path class="route-path" d="M60,320 C130,320 130,190 200,190 S270,320 350,320 C420,320 420,190 490,190 S560,320 630,320 C700,320 720,190 790,190 S860,320 930,320"/>
+      </svg>
+      <div class="map-node" style="left:6%;top:78%;" data-title="Hometown" data-text="Grew up here, finished school, and got curious about how computers actually work under the hood."><div class="pin"><span>🏠</span></div><div class="m-label">School</div></div>
+      <div class="map-node" style="left:20%;top:47.5%;" data-title="Route 1 — BCA" data-text="Started my BCA. This is where the fundamentals of programming and problem-solving really clicked."><div class="pin"><span>🎓</span></div><div class="m-label">BCA</div></div>
+      <div class="map-node gym" style="left:35%;top:78%;" data-title="Built GharTak" data-text="Built GharTak — a Flutter carpooling app with ride sharing, live tracking, UPI payments, and a full admin dashboard."><div class="pin"><span>🚗</span></div><div class="m-label">GharTak</div></div>
+      <div class="map-node gym" style="left:49%;top:47.5%;" data-title="Built WashInn" data-text="Built WashInn — shipping a second real product taught me how to move faster the second time around."><div class="pin"><span>🚿</span></div><div class="m-label">WashInn</div></div>
+      <div class="map-node gym" style="left:63%;top:78%;" data-title="Built MintiGrow" data-text="Built MintiGrow — a coliving/marketing platform with a Flutter app and a PHP/MySQL admin panel with real auth security."><div class="pin"><span>🌐</span></div><div class="m-label">MintiGrow</div></div>
+      <div class="map-node" style="left:79%;top:47.5%;" data-title="MCA" data-text="Started my MCA — going deeper into the theory behind the things I'd already been shipping."><div class="pin"><span>🎓</span></div><div class="m-label">MCA</div></div>
+      <div class="map-node current" style="left:93%;top:78%;" data-title="Indigo Plateau — Dream Job" data-text="Currently chasing the next placement. The journey's still loading, but the party's strong."><div class="pin"><span>💼</span></div><div class="m-label">Dream Job</div></div>
+      <img class="trainer-sprite" id="trainerSprite" style="left:6%;top:78%;" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='7' r='5' fill='%23F4C89A'/%3E%3Cpath d='M4 24c0-6 4-9 8-9s8 3 8 9z' fill='%233B82C4'/%3E%3Cpath d='M4 8c0-4 4-6 8-6s8 2 8 6l-2 1c-2-3-4-3-6-3s-4 0-6 3z' fill='%23E3350D'/%3E%3C/svg%3E" alt="">
+    </div>
+    <div class="dialogue-box reveal" id="dialogueBox">
+      <span class="d-name" id="dName">SCHOOL</span>
+      <span id="dText">Tap a stop on the route above to begin.</span>
+    </div>
+  </div>
+</section>
+
+<section id="featured">
+  <div class="wrap">
+    <span class="section-tag reveal">// FEATURED PROJECT</span>
+    <h2 class="section-title reveal">GharTak — the deep dive</h2>
+    <p class="section-sub reveal">My biggest build so far gets its own spotlight.</p>
+    <div class="featured-wrap reveal">
+      <div class="phone-mock"><div class="phone-screen">
+    <img src="images/home.jpeg" alt="GharTak Home Screen">
+</div></div>
+      <div class="featured-detail">
+        <h4>FEATURES</h4>
+        <ul class="featured-list">
+          <li>Ride sharing between college students with driver/rider flows</li>
+          <li>Live ride tracking</li>
+          <li>UPI payment confirmation with OTP and driver-confirmation states</li>
+          <li>Admin dashboard with sort chips and a custom date-range picker</li>
+        </ul>
+        <h4>ARCHITECTURE</h4>
+        <p style="font-size:.86rem;color:var(--ink-soft);">Flutter client talking to a Firebase backend for auth and realtime ride data, with a separate admin dashboard for moderation and oversight.</p>
+        <h4>TECH STACK</h4>
+        <div class="tech-pill-row"><span class="tag">Flutter</span><span class="tag">Firebase</span><span class="tag">OCR</span><span class="tag">UPI Payments</span><span class="tag">Admin Dashboard</span></div>
+        <h4>CHALLENGES</h4>
+        <ul class="featured-list">
+          <li>Getting the active-ride button logic and driver-confirmation state machine right</li>
+          <li>Fixing logout navigation and edge-case bugs across the ride flow</li>
+        </ul>
+        <h4>LESSONS LEARNED</h4>
+        <p style="font-size:.86rem;color:var(--ink-soft);">EDIT: a sentence or two on what this project actually taught you — that's the part recruiters remember most.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="live-prototype" style="background:var(--panel);border-top:2px solid var(--panel-line);border-bottom:2px solid var(--panel-line);">
+  <div class="wrap">
+    <span class="section-tag reveal">// LIVE PROTOTYPE</span>
+    <h2 class="section-title reveal">Click through GharTak yourself</h2>
+    <p class="section-sub reveal">This is the actual interactive pitch prototype — rider app and admin panel — built from GharTak's real screens. Scroll inside the frame and click around.</p>
+    <div class="embed-frame-wrap reveal">
+      <iframe src="ghartak_pitch.html" title="GharTak interactive prototype" loading="lazy"></iframe>
+    </div>
+    <p class="embed-note">Running live from <code>ghartak_pitch.html</code> — keep that file in the same folder as this page.</p>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="wrap">
+    <span class="section-tag reveal">// PROJECTS</span>
+    <h2 class="section-title reveal">Caught 'Em All</h2>
+    <p class="section-sub reveal">Each project gets its own ball. Tap one — it shakes like a real capture, then opens.</p>
+    <div class="proj-grid">
+
+      <div class="capsule reveal" data-project>
+        <div class="pokeball-wrap">
+          <div class="pokeball ball-luxury"><div class="half top"></div><div class="half bottom"></div><div class="mid-bar"></div><div class="button"></div></div>
+          <div class="gotcha">GOTCHA!</div>
+        </div>
+        <div class="no">LUXURY BALL</div>
+        <h3>GharTak</h3>
+        <div class="hint">tap to open</div>
+        <div class="proj-detail">
+          <p>College carpooling / ride-sharing app — biggest build so far. Flutter front end, Firebase backend, UPI payment confirmation flow, live tracking, and a full admin dashboard with custom date-range filtering.</p>
+          <div class="tag-row"><span class="tag">Flutter</span><span class="tag">Firebase</span><span class="tag">OCR</span><span class="tag">Live Tracking</span><span class="tag">Admin Dashboard</span></div>
+          <div class="shot-row">
+            <div class="shot-frame">EDIT: Login screenshot</div>
+            <div class="shot-frame">EDIT: Dashboard screenshot</div>
+            <div class="shot-frame">EDIT: Ride-tracking screenshot</div>
+            <div class="shot-frame">EDIT: Admin panel screenshot</div>
+          </div>
+          <a class="demo-btn" href="EDIT_GHARTAK_DEMO_VIDEO_URL" target="_blank">▶ Watch 45s Demo</a>
+        </div>
+      </div>
+
+      <div class="capsule reveal d1" data-project>
+        <div class="pokeball-wrap">
+          <div class="pokeball ball-dive"><div class="half top"></div><div class="half bottom"></div><div class="mid-bar"></div><div class="button"></div></div>
+          <div class="gotcha">GOTCHA!</div>
+        </div>
+        <div class="no">DIVE BALL</div>
+        <h3>WashInn</h3>
+        <div class="hint">tap to open</div>
+        <div class="proj-detail">
+          <p>Second product shipped end to end — water-themed ball felt right. Faster build cycle than GharTak thanks to lessons carried over.</p>
+          <div class="tag-row"><span class="tag">Flutter</span><span class="tag">Firebase</span></div>
+          <div class="shot-row">
+            <div class="shot-frame">EDIT: Login screenshot</div>
+            <div class="shot-frame">EDIT: Dashboard screenshot</div>
+            <div class="shot-frame">EDIT: Features screenshot</div>
+          </div>
+          <a class="demo-btn" href="EDIT_WASHINN_DEMO_VIDEO_URL" target="_blank">▶ Watch Demo</a>
+        </div>
+      </div>
+
+      <div class="capsule reveal d2" data-project>
+        <div class="pokeball-wrap">
+          <div class="pokeball ball-premier"><div class="half top"></div><div class="half bottom"></div><div class="mid-bar"></div><div class="button"></div></div>
+          <div class="gotcha">GOTCHA!</div>
+        </div>
+        <div class="no">PREMIER BALL</div>
+        <h3>MintiGrow</h3>
+        <div class="hint">tap to open</div>
+        <div class="proj-detail">
+          <p>Premium coliving / digital marketing platform. HTML pitch prototype converted into a full Flutter app covering tenant and owner flows, plus a PHP/MySQL admin panel with bcrypt auth, CSRF and brute-force protection.</p>
+          <div class="tag-row"><span class="tag">Flutter</span><span class="tag">PHP</span><span class="tag">MySQL</span><span class="tag">Auth Security</span></div>
+          <div class="shot-row">
+            <div class="shot-frame">EDIT: Login screenshot</div>
+            <div class="shot-frame">EDIT: Tenant dashboard</div>
+            <div class="shot-frame">EDIT: Owner portal</div>
+            <div class="shot-frame">EDIT: Admin panel</div>
+          </div>
+          <a class="demo-btn" href="EDIT_MINTIGROW_DEMO_VIDEO_URL" target="_blank">▶ Watch Demo</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<!--
+<section id="github">
+  <div class="wrap">
+    <span class="section-tag reveal">// GITHUB STATS</span>
+    <h2 class="section-title reveal">Live from GitHub</h2>
+    <p class="section-sub reveal">EDIT: wire this to your real GitHub username — swap the numbers below and, if you want it truly live, embed a GitHub-stats image API card using your username.</p>
+    <div class="gh-grid">
+      <div class="gh-card reveal"><span class="gh-num">EDIT</span><span class="gh-label">Repositories</span></div>
+      <div class="gh-card reveal"><span class="gh-num">EDIT</span><span class="gh-label">Followers</span></div>
+      <div class="gh-card reveal"><span class="gh-num">EDIT</span><span class="gh-label">Languages</span></div>
+      <div class="gh-card reveal"><span class="gh-num">100+</span><span class="gh-label">Commits</span></div>
+    </div>
+    <div class="contrib-graph reveal" id="contribGraph"></div>
+    <p class="gh-note">EDIT: this grid is a placeholder pattern — for a real contribution graph, embed your GitHub profile's contribution image directly.</p>
+  </div>
+</section>
+-->
+
+
+<section style="background:var(--panel);border-top:2px solid var(--panel-line);border-bottom:2px solid var(--panel-line);">
+  <div class="wrap">
+    <span class="section-tag reveal">// RESUME</span>
+    <h2 class="section-title reveal">Resume Preview</h2>
+    <div class="resume-wrap reveal">
+      <div class="resume-frame">EDIT: drop a screenshot of your resume's first page here</div>
+      <div>
+        <p style="color:var(--ink-soft);max-width:40ch;margin-bottom:16px;">A quick look before the download — no surprises when a recruiter clicks through.</p>
+        <a class="btn primary" href="EDIT_RESUME_LINK.pdf" target="_blank">⚔ Challenge Trainer (Full Resume) →</a>
+      </div>
+    </div>
+  </div>
+</section>
+<!--
+<section>
+  <div class="wrap">
+    <span class="section-tag reveal">// RESPONSIVE</span>
+    <h2 class="section-title reveal">Works everywhere</h2>
+    <p class="section-sub reveal">EDIT: swap these frames for real screenshots of one of your apps across screen sizes.</p>
+    <div class="responsive-row reveal">
+      <div><div class="device-frame desktop">EDIT: desktop screenshot</div><div class="device-label">Desktop</div></div>
+      <div><div class="device-frame tablet">EDIT: tablet screenshot</div><div class="device-label">Tablet</div></div>
+      <div><div class="device-frame phone">EDIT: phone screenshot</div><div class="device-label">Phone</div></div>
+    </div>
+  </div>
+</section>
+-->
+<section id="completion">
+  <div class="wrap">
+    <span class="section-tag reveal">// THE NUMBERS</span>
+    <h2 class="section-title reveal">Progress Log</h2>
+    <div class="stat-strip">
+      <div class="stat-box reveal"><span class="big-num" data-count="3" data-suffix="+">0</span><span class="stat-label">Major Projects</span></div>
+      <div class="stat-box reveal"><span class="big-num" data-count="10" data-suffix="+">0</span><span class="stat-label">Technologies</span></div>
+      <div class="stat-box reveal"><span class="big-num" data-count="100" data-suffix="+">0</span><span class="stat-label">Git Commits</span></div>
+      <div class="stat-box reveal"><span class="big-num" data-count="2">0</span><span class="stat-label">Real Clients</span></div>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--panel);border-top:2px solid var(--panel-line);border-bottom:2px solid var(--panel-line);">
+  <div class="wrap">
+    <span class="section-tag reveal">// BATTLE STATS</span>
+    <h2 class="section-title reveal">Stat Screen</h2>
+    <div class="battle-ui reveal">
+      <div class="hp-row"><div class="hp-top"><span>Flutter</span><span>HP</span></div><div class="hp-bar"><i style="--w:88%"></i></div></div>
+      <div class="hp-row"><div class="hp-top"><span>React</span><span>HP</span></div><div class="hp-bar"><i style="--w:68%"></i></div></div>
+      <div class="hp-row"><div class="hp-top"><span>Firebase</span><span>HP</span></div><div class="hp-bar"><i style="--w:82%"></i></div></div>
+      <div class="hp-row"><div class="hp-top"><span>Problem Solving</span><span>HP</span></div><div class="hp-bar"><i style="--w:92%"></i></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="achievements">
+  <div class="wrap">
+    <span class="section-tag reveal">// ACHIEVEMENTS</span>
+    <h2 class="section-title reveal">Trophy Case</h2>
+    <div class="achieve-list" id="achieveList">
+      <div class="achieve-row"><span class="trophy">🏆</span><span>Built GharTak</span></div>
+      <div class="achieve-row"><span class="trophy">🏆</span><span>Built WashInn</span></div>
+      <div class="achieve-row"><span class="trophy">🏆</span><span>Built MintiGrow</span></div>
+      <div class="achieve-row"><span class="trophy">🏆</span><span>Delivered client websites</span></div>
+      <div class="achieve-row"><span class="trophy">🏆</span><span>Learning React</span></div>
+      <div class="achieve-row"><span class="trophy">🏆</span><span>MCA Student</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="pc-panel reveal">
+      <div>
+        <span class="section-tag" style="color:var(--yellow);">// POKÉMON CENTER</span>
+        <h2>Ready to team up?</h2>
+        <p>Open to internships, freelance work, and collaborations. Drop a message — I check this Pokémon Center regularly.</p>
+      </div>
+      <div class="contact-links">
+        <a href="mailto:chaudharideep1106@gmail.com">Email <span>→</span></a>
+        <a href="https://github.com/naklideep" target="_blank">GitHub <span>→</span></a>
+        <a href="https://linkedin.com/in/EDIT_YOUR_LINKEDIN" target="_blank">LinkedIn <span>→</span></a>
+        <a href="EDIT_RESUME_LINK.pdf" id="resumeLink">⚔ Challenge Trainer (Resume) <span>→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="complete-modal" id="completeModal">
+  <div class="complete-card">
+    <div class="c-title">Congratulations<br>Trainer!<br>Portfolio Completed</div>
+    <p>You caught all 3 projects. Thanks for exploring — let's build something together.</p>
+    <a class="btn primary" id="completeClose" style="cursor:pointer;">Nice!</a>
+  </div>
+</div>
+
+<footer>Built by Deep Chaudhari · Gotta code 'em all.</footer>
+
+<script>
+/* ===== fail-safe: unlock scroll no matter what ===== */
+setTimeout(() => document.body.classList.remove('locked'), 5000);
+
+/* ===== preloader ===== */
+window.addEventListener('load', () => {
+  const ball = document.getElementById('preball');
+  const pre = document.getElementById('preloader');
+  setTimeout(() => ball.classList.add('shake'), 150);
+  setTimeout(() => { pre.classList.add('hide'); document.body.classList.remove('locked'); }, 1100);
+});
+
+/* ===== background: clouds + floating balls + lightning bolt ===== */
+const bgLayer = document.getElementById('bgLayer');
+const cloudSVG = `<svg viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg"><ellipse cx="30" cy="35" rx="28" ry="16" fill="#fff"/><ellipse cx="60" cy="25" rx="34" ry="20" fill="#fff"/><ellipse cx="90" cy="35" rx="26" ry="15" fill="#fff"/></svg>`;
+for (let i=0;i<4;i++){
+  const c = document.createElement('div');
+  c.className='cloud';
+  c.innerHTML = cloudSVG;
+  c.style.top = (5+Math.random()*30)+'vh';
+  c.style.width = (140+Math.random()*100)+'px';
+  c.style.height = (70+Math.random()*40)+'px';
+  c.style.animationDuration = (55+Math.random()*40)+'s';
+  c.style.animationDelay = (-Math.random()*40)+'s';
+  bgLayer.appendChild(c);
+}
+const ballSVG = `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#E3350D" stroke="#1B1B1F" stroke-width="2.5"/><path d="M3 20a17 17 0 0 0 34 0" fill="#fff"/><rect x="3" y="18" width="34" height="4" fill="#1B1B1F"/><circle cx="20" cy="20" r="5" fill="#fff" stroke="#1B1B1F" stroke-width="2.5"/></svg>`;
+for (let i=0;i<10;i++){
+  const el = document.createElement('div');
+  el.className='float-ball'; el.innerHTML = ballSVG;
+  el.style.left = Math.random()*100+'vw';
+  el.style.animationDuration = (16+Math.random()*16)+'s';
+  el.style.animationDelay = (Math.random()*16)+'s';
+  el.style.width = el.style.height = (14+Math.random()*20)+'px';
+  bgLayer.appendChild(el);
+}
+const boltSVG = `<svg width="60" height="90" viewBox="0 0 60 90"><path d="M35 0 L10 45 H28 L18 90 L52 35 H32 Z" fill="#FFD84D"/></svg>`;
+for (let i=0;i<2;i++){
+  const b = document.createElement('div');
+  b.className='bolt'; b.innerHTML = boltSVG;
+  b.style.left = (10+Math.random()*80)+'vw';
+  b.style.top = (5+Math.random()*20)+'vh';
+  b.style.animationDelay = (Math.random()*7)+'s';
+  bgLayer.appendChild(b);
+}
+
+/* ===== hero typewriter ===== */
+const twEl = document.getElementById('typewriter');
+const twMsg = "Building apps that solve real-world problems.";
+let twI = 0;
+function typeHero(){
+  if (twI <= twMsg.length){
+    twEl.textContent = twMsg.slice(0, twI);
+    twI++;
+    setTimeout(typeHero, 28);
+  }
+}
+setTimeout(typeHero, 900);
+
+/* ===== nav mobile ===== */
+const hamburger = document.getElementById('hamburger');
+const navList = document.getElementById('navList');
+hamburger.addEventListener('click', () => navList.classList.toggle('open'));
+navList.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navList.classList.remove('open')));
+
+/* ===== exp bar / level ===== */
+const expFill = document.getElementById('expBarFill');
+const levelPill = document.getElementById('levelPill');
+const levelupToast = document.getElementById('levelupToast');
+let currentLevel = 1;
+function updateExp(){
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? Math.min(100,(scrollTop/docHeight)*100) : 0;
+  expFill.style.width = pct+'%';
+  const level = Math.min(5, Math.floor(pct/20)+1);
+  if (level > currentLevel){
+    currentLevel = level;
+    levelPill.textContent = 'LV.'+currentLevel;
+    levelPill.classList.remove('bump'); void levelPill.offsetWidth; levelPill.classList.add('bump');
+    levelupToast.textContent = 'LEVEL UP! → LV.'+currentLevel;
+    levelupToast.classList.remove('show'); void levelupToast.offsetWidth; levelupToast.classList.add('show');
+  }
+}
+window.addEventListener('scroll', updateExp);
+updateExp();
+
+/* ===== scroll reveal + counters + hp bars ===== */
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting){
+      entry.target.classList.add('in-view');
+      entry.target.querySelectorAll('.hp-bar i').forEach(bar => { bar.style.width = getComputedStyle(bar).getPropertyValue('--w'); });
+      entry.target.querySelectorAll('.big-num[data-count]').forEach(numEl => animateCount(numEl));
+    }
+  });
+}, {threshold:.2});
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+function animateCount(el){
+  if (el.dataset.done) return;
+  el.dataset.done = '1';
+  const target = parseInt(el.dataset.count, 10);
+  const suffix = el.dataset.suffix || '';
+  let cur = 0;
+  const step = Math.max(1, Math.ceil(target/40));
+  const t = setInterval(() => {
+    cur += step;
+    if (cur >= target){ cur = target; clearInterval(t); }
+    el.textContent = cur + suffix;
+  }, 30);
+}
+document.querySelectorAll('.big-num[data-text]').forEach(el => { el.textContent = el.dataset.text; });
+
+/* ===== achievements stagger reveal ===== */
+const achieveIO = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting){
+      const rows = document.querySelectorAll('.achieve-row');
+      rows.forEach((row,i) => setTimeout(() => row.classList.add('show'), i*140));
+      achieveIO.disconnect();
+    }
+  });
+}, {threshold:.3});
+achieveIO.observe(document.getElementById('achieveList'));
+
+/* ===== placeholder contribution graph ===== */
+const contribGraph = document.getElementById('contribGraph');
+if (contribGraph){
+  const levels = ['','l1','l1','l2','l2','l3','l4'];
+  for (let i=0;i<130;i++){
+    const cell = document.createElement('div');
+    const lvl = levels[Math.floor(Math.random()*levels.length)];
+    cell.className = 'contrib-cell'+(lvl?(' '+lvl):'');
+    contribGraph.appendChild(cell);
+  }
+}
+
+/* ===== gym badges expand ===== */
+document.querySelectorAll('.gym-badge').forEach(b => {
+  b.addEventListener('click', () => b.classList.toggle('open'));
+});
+
+/* ===== party card keyboard focus already handled via tabindex + CSS focus-within ===== */
+
+/* ===== journey map ===== */
+const sprite = document.getElementById('trainerSprite');
+const dialogue = document.getElementById('dialogueBox');
+const dName = document.getElementById('dName');
+const dText = document.getElementById('dText');
+document.querySelectorAll('.map-node').forEach(node => {
+  node.setAttribute('tabindex','0');
+  node.setAttribute('role','button');
+  node.setAttribute('aria-label', node.dataset.title);
+  function visit(){
+    sprite.style.left = node.style.left;
+    sprite.style.top = node.style.top;
+    node.classList.add('visited');
+    setTimeout(() => {
+      dName.textContent = node.dataset.title.toUpperCase();
+      dText.textContent = node.dataset.text;
+      dialogue.classList.add('show');
+    }, 450);
+  }
+  node.addEventListener('click', visit);
+  node.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); visit(); } });
+});
+
+/* ===== project pokeballs capture + catch counter ===== */
+const catchCountEl = document.getElementById('catchCount');
+const completeModal = document.getElementById('completeModal');
+document.getElementById('completeClose').addEventListener('click', () => completeModal.classList.remove('show'));
+let caught = 0;
+document.querySelectorAll('.capsule[data-project]').forEach(cap => {
+  cap.setAttribute('tabindex','0'); cap.setAttribute('role','button');
+  function toggleCapsule(){
+    if (cap.classList.contains('open')){ cap.classList.remove('open'); return; }
+    if (cap.classList.contains('shaking')) return;
+    cap.classList.add('shaking');
+    setTimeout(() => {
+      cap.classList.remove('shaking');
+      cap.classList.add('open');
+      spawnSparkles(cap.querySelector('.pokeball-wrap'));
+      if (!cap.dataset.counted){
+        cap.dataset.counted = '1';
+        caught++;
+        catchCountEl.textContent = `🎒 ${caught}/3 caught`;
+        if (caught === 3) setTimeout(() => completeModal.classList.add('show'), 700);
+      }
+    }, 850);
+  }
+  cap.addEventListener('click', toggleCapsule);
+  cap.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); toggleCapsule(); } });
+});
+function spawnSparkles(container){
+  for (let i=0;i<10;i++){
+    const s = document.createElement('div');
+    s.className='sparkle';
+    const angle = (Math.PI*2*i)/10;
+    const dist = 50+Math.random()*22;
+    s.style.setProperty('--dx', Math.cos(angle)*dist+'px');
+    s.style.setProperty('--dy', Math.sin(angle)*dist+'px');
+    container.appendChild(s);
+    setTimeout(() => s.remove(), 900);
+  }
+}
+
+/* ===== Ultra Ball dark mode toggle ===== */
+document.getElementById('ultraBallToggle').addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+});
+
+/* ===== chiptune sound (procedural, muteable) ===== */
+let audioCtx = null, muted = false;
+function beep(freq, dur, delay=0){
+  if (muted) return;
+  try{
+    if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.type='square'; osc.frequency.value=freq;
+    gain.gain.value = 0.05;
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    const t0 = audioCtx.currentTime + delay;
+    osc.start(t0); gain.gain.setValueAtTime(0.05,t0); gain.gain.exponentialRampToValueAtTime(0.001, t0+dur);
+    osc.stop(t0+dur);
+  }catch(e){}
+}
+document.getElementById('muteToggle').addEventListener('click', (e) => {
+  muted = !muted;
+  e.currentTarget.textContent = muted ? '🔇 Sound' : '🔊 Sound';
+  if (!muted) beep(660,.1);
+});
+window.addEventListener('load', () => setTimeout(() => { beep(523,.08); beep(659,.08,.1); beep(784,.14,.2); }, 1300));
+
+/* ===== click Pikachu 10 times -> thunder ===== */
+let pikaClicks = 0;
+document.getElementById('pikachuClick').addEventListener('click', () => {
+  pikaClicks++;
+  beep(880,.06);
+  if (pikaClicks >= 10){
+    pikaClicks = 0;
+    const flash = document.getElementById('thunderFlash');
+    flash.classList.remove('pop'); void flash.offsetWidth; flash.classList.add('pop');
+    beep(1200,.15); beep(200,.2,.1);
+    showToast('⚡ Pikachu unleashed Thunder!');
+  }
+});
+
+/* ===== click Charmander -> flame ===== */
+document.getElementById('charmanderClick').addEventListener('click', (e) => {
+  const burst = document.createElement('div');
+  burst.className = 'flame-burst';
+  burst.textContent = '🔥';
+  const rect = e.currentTarget.getBoundingClientRect();
+  burst.style.left = (rect.left+rect.width/2-16)+'px';
+  burst.style.top = rect.top+'px';
+  document.body.appendChild(burst);
+  requestAnimationFrame(()=>burst.classList.add('pop'));
+  beep(300,.1); beep(500,.1,.08);
+  setTimeout(()=>burst.remove(),850);
+});
+document.getElementById('charmanderClick').addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); e.currentTarget.click(); } });
+
+/* ===== toast helper ===== */
+function showToast(msg){
+  const toast = document.getElementById('easterToast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'), 3000);
+}
+
+/* ===== Konami code -> shiny Rayquaza ===== */
+const konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+let konamiPos = 0;
+window.addEventListener('keydown', (e) => {
+  const key = e.key.length===1 ? e.key.toLowerCase() : e.key;
+  if (key === konami[konamiPos]){
+    konamiPos++;
+    if (konamiPos === konami.length){ konamiPos = 0; triggerShiny(); }
+  } else {
+    konamiPos = (key===konami[0]) ? 1 : 0;
+  }
+});
+function triggerShiny(){
+  const rain = document.getElementById('shinyRain');
+  for (let i=0;i<36;i++){
+    const drop = document.createElement('div');
+    drop.className='shiny-drop'; drop.textContent='✨';
+    drop.style.left = Math.random()*100+'vw';
+    drop.style.animationDuration = (2+Math.random()*2)+'s';
+    drop.style.fontSize = (14+Math.random()*16)+'px';
+    rain.appendChild(drop);
+    setTimeout(()=>drop.remove(),4200);
+  }
+  const ray = document.getElementById('rayquaza');
+  ray.classList.remove('fly'); void ray.offsetWidth; ray.classList.add('fly');
+  beep(200,.3); beep(400,.3,.15); beep(700,.3,.3);
+  showToast('✨ Shiny Rayquaza appeared! You found the secret. ✨');
+}
+</script>
+
+</body>
+</html>

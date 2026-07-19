@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GharTak — Interactive Pitch Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#131B36;
+  --navy2:#1E2B52;
+  --navy3:#2A3868;
+  --yellow:#FFCC00;
+  --yellow2:#FFDE59;
+  --bg:#F2F3F8;
+  --white:#FFFFFF;
+  --muted:#767A94;
+  --muted2:#AEB1C6;
+  --border:#E7E8F1;
+  --border2:#D6D8E8;
+  --green:#1FA968;
+  --green-lt:#E4F7ED;
+  --red:#E14B4B;
+  --red-lt:#FCEAEA;
+  --r:18px;
+  --r-sm:12px;
+  --shadow:0 2px 18px rgba(19,27,54,0.08);
+  --shadow-lg:0 10px 46px rgba(19,27,54,0.18);
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+}
+
+/* ── PITCH HEADER ── */
+.pitch-header{width:100%;max-width:960px;padding:36px 24px 0;text-align:center;}
+.pitch-header .agency-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.7rem;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;
+  color:var(--muted);background:white;border:1px solid var(--border2);
+  padding:6px 16px;border-radius:40px;margin-bottom:18px;
+}
+.pitch-header .agency-tag::before{content:'●';color:var(--yellow);font-size:1.1rem;line-height:0;}
+.pitch-header h1{
+  font-family:'Baloo 2',sans-serif;font-weight:800;
+  font-size:clamp(1.8rem,4vw,2.6rem);color:var(--navy);
+  letter-spacing:-0.5px;margin-bottom:10px;
+}
+.pitch-header p{color:var(--muted);font-size:0.95rem;max-width:440px;margin:0 auto 32px;}
+.mode-toggle{display:inline-flex;background:white;border:1px solid var(--border2);border-radius:50px;padding:4px;gap:4px;margin-bottom:40px;}
+.mode-btn{
+  padding:9px 22px;border-radius:40px;border:none;
+  font-family:'Inter',sans-serif;font-size:0.88rem;font-weight:600;
+  cursor:pointer;transition:all .25s;color:var(--muted);background:transparent;
+}
+.mode-btn.active{background:var(--navy);color:var(--yellow);}
+
+/* ── DEVICE STAGE ── */
+.device-stage{display:flex;align-items:flex-start;justify-content:center;gap:40px;padding:0 24px 60px;width:100%;max-width:960px;flex-wrap:wrap;}
+.device-wrap{position:relative;flex-shrink:0;}
+.device{
+  width:375px;background:var(--white);border-radius:46px;
+  box-shadow:0 0 0 10px #0c1226,0 0 0 12px #05070f,var(--shadow-lg);
+  overflow:hidden;position:relative;
+}
+.device-bar{height:44px;background:transparent;display:flex;align-items:center;justify-content:center;position:relative;z-index:10;padding:0 24px;}
+.device-notch{width:120px;height:32px;background:#05070f;border-radius:0 0 18px 18px;position:absolute;top:0;left:50%;transform:translateX(-50%);}
+.device-time{font-size:0.78rem;font-weight:600;color:var(--navy);position:absolute;left:28px;top:14px;}
+.device-icons{position:absolute;right:28px;top:14px;font-size:0.72rem;color:var(--navy);letter-spacing:1px;}
+.screen{display:none;flex-direction:column;min-height:740px;background:var(--white);animation:fadeUp .3s ease both;}
+.screen.active{display:flex;}
+.screen-dark .device-time,.screen-dark .device-icons{color:white;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.screen-scroll{flex:1;overflow-y:auto;padding-bottom:16px;}
+.screen-scroll::-webkit-scrollbar{width:0}
+
+/* ── APP HEADER (matches real screenshots) ── */
+.app-header{background:var(--navy);padding:16px 20px;display:flex;align-items:center;gap:12px;}
+.app-logo{width:34px;height:34px;border-radius:9px;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.app-brand{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:1.15rem;color:white;flex:1;}
+.icon-btn{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;color:white;font-size:0.95rem;cursor:pointer;}
+.tab-row{display:flex;background:var(--navy);padding:0 16px 14px;gap:10px;}
+.tab-btn{
+  flex:1;padding:11px;border-radius:12px;border:none;
+  font-family:'Inter',sans-serif;font-weight:700;font-size:0.85rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;
+  background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.55);transition:all .2s;
+}
+.tab-btn.on{background:var(--yellow);color:var(--navy);}
+
+/* typography helpers */
+.t-display{font-family:'Baloo 2',sans-serif;font-size:1.5rem;font-weight:700;color:var(--navy);line-height:1.2;}
+.t-title{font-size:1.05rem;font-weight:700;color:var(--navy);}
+.t-body{font-size:0.87rem;color:var(--muted);line-height:1.55;}
+.t-label{font-size:0.7rem;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);}
+.t-price{font-family:'Baloo 2',sans-serif;font-size:1.25rem;font-weight:700;color:var(--navy);}
+
+/* buttons */
+.btn-full{display:block;width:100%;padding:15px;background:var(--navy);color:white;border:none;border-radius:var(--r);font-family:'Inter',sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;text-align:center;text-decoration:none;}
+.btn-full:hover{opacity:.9;transform:scale(0.99);}
+.btn-full.gold{background:linear-gradient(135deg,var(--yellow),var(--yellow2));color:var(--navy);}
+.btn-ghost{display:block;width:100%;padding:13px;background:transparent;color:var(--navy);border:1.5px solid var(--border2);border-radius:var(--r);font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:border-color .2s;text-align:center;}
+.btn-ghost:hover{border-color:var(--navy);}
+
+/* chips + input */
+.chip{display:inline-block;padding:7px 14px;border-radius:50px;font-size:0.78rem;font-weight:600;border:1.5px solid var(--border2);color:var(--muted);background:white;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.chip.active{background:var(--navy);color:var(--yellow);border-color:var(--navy);}
+.input-wrap{background:var(--bg);border-radius:var(--r-sm);padding:13px 16px;display:flex;align-items:center;gap:10px;border:1.5px solid transparent;transition:border-color .2s;}
+.input-wrap:focus-within{border-color:var(--yellow);}
+.input-wrap input{border:none;background:transparent;font-family:'Inter',sans-serif;font-size:0.92rem;color:var(--navy);flex:1;outline:none;font-weight:500;}
+.input-wrap input::placeholder{color:var(--muted2);}
+
+/* badges */
+.badge-gold{display:inline-flex;align-items:center;gap:5px;background:#FFF7DA;color:#8A6A10;font-size:0.72rem;font-weight:700;padding:4px 10px;border-radius:50px;border:1px solid #F5E39B;}
+.badge-green{display:inline-flex;align-items:center;gap:4px;background:var(--green-lt);color:var(--green);font-size:0.72rem;font-weight:700;padding:4px 10px;border-radius:50px;}
+.badge-red{display:inline-flex;align-items:center;gap:4px;background:var(--red-lt);color:var(--red);font-size:0.72rem;font-weight:700;padding:4px 10px;border-radius:50px;}
+.badge-gray{display:inline-flex;align-items:center;gap:4px;background:var(--bg);color:var(--muted);font-size:0.72rem;font-weight:700;padding:4px 10px;border-radius:50px;}
+
+/* avatar */
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;color:var(--navy);flex-shrink:0;overflow:hidden;}
+
+/* route line signature motif: dashed route between two pins */
+.route-line{display:flex;align-items:center;gap:8px;margin:4px 0;}
+.route-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.route-dot.start{background:var(--yellow);border:2px solid var(--navy);}
+.route-dot.end{background:var(--navy);}
+.route-dash{flex:1;height:0;border-top:2px dashed var(--border2);}
+
+/* stat card */
+.stat-card{background:var(--navy);border-radius:var(--r-sm);padding:16px;flex:1;color:white;}
+.stat-card.hi{background:var(--yellow);color:var(--navy);}
+.stat-card .num{font-family:'Baloo 2',sans-serif;font-size:1.6rem;font-weight:700;}
+.stat-card .lbl{font-size:0.7rem;opacity:0.65;margin-top:2px;font-weight:600;}
+
+/* ride card (rider find/list) */
+.ride-card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;cursor:pointer;transition:box-shadow .2s,transform .15s;}
+.ride-card:hover{box-shadow:var(--shadow);transform:translateY(-1px);}
+
+/* empty state */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;text-align:center;}
+.empty-icon{width:100px;height:100px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:2.2rem;margin-bottom:22px;color:var(--navy);}
+
+/* divider */
+.divider{height:1px;background:var(--border);margin:14px 0;}
+
+/* admin */
+.admin-header{background:var(--navy);padding:18px 20px;}
+.admin-topbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.admin-tabs{display:flex;background:rgba(255,255,255,0.06);border-radius:50px;padding:4px;gap:2px;}
+.admin-tab{flex:1;padding:9px;border:none;border-radius:50px;font-family:'Inter',sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;background:transparent;color:rgba(255,255,255,0.55);display:flex;align-items:center;justify-content:center;gap:6px;}
+.admin-tab.on{background:var(--yellow);color:var(--navy);}
+.sort-row{display:flex;gap:8px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none;}
+.sort-chip{padding:8px 16px;border-radius:50px;font-size:0.78rem;font-weight:700;background:var(--navy);color:rgba(255,255,255,0.6);border:none;cursor:pointer;white-space:nowrap;}
+.sort-chip.on{background:var(--yellow);color:var(--navy);}
+
+/* bottom sheet modal */
+.sheet-overlay{position:absolute;inset:0;background:rgba(10,12,24,0.55);z-index:60;display:flex;align-items:flex-end;}
+.sheet{width:100%;background:white;border-radius:24px 24px 0 0;max-height:88%;display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(0,0,0,0.2);}
+.sheet-head{background:var(--navy);padding:20px 20px 18px;border-radius:24px 24px 0 0;display:flex;align-items:center;gap:10px;position:relative;}
+.sheet-grip{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:40px;height:4px;border-radius:4px;background:rgba(255,255,255,0.25);}
+.sheet-body{padding:18px 20px 20px;overflow-y:auto;}
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);gap:16px;}
+.detail-row:last-child{border-bottom:none;}
+.detail-row .k{font-size:0.78rem;font-weight:700;color:var(--muted);flex-shrink:0;}
+.detail-row .v{font-size:0.86rem;font-weight:600;color:var(--navy);text-align:right;}
+
+/* profile */
+.profile-hero{background:var(--navy);border-radius:var(--r);padding:32px 20px;margin:20px 16px;text-align:center;position:relative;overflow:hidden;}
+.profile-hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:24px 24px;}
+.profile-ring{width:100px;height:100px;border-radius:50%;border:1px solid rgba(255,204,0,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;position:relative;}
+.profile-ring-inner{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--yellow2));display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',sans-serif;font-size:1.7rem;font-weight:700;color:var(--navy);}
+.profile-verified{position:absolute;bottom:0;right:calc(50% - 44px);width:26px;height:26px;border-radius:50%;background:var(--green);border:3px solid var(--navy);display:flex;align-items:center;justify-content:center;color:white;font-size:0.7rem;}
+.info-card{background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;margin:0 16px 10px;display:flex;align-items:center;gap:12px;}
+.info-icon{width:36px;height:36px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+
+/* bottom nav */
+.bottom-nav{position:relative;height:76px;background:white;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding:0 8px 10px;}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 12px;border:none;background:none;cursor:pointer;color:var(--muted2);font-size:0.63rem;font-weight:700;transition:color .2s;}
+.bnav-item svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.bnav-item.active{color:var(--navy);}
+.bnav-item.active svg{stroke:var(--navy);}
+
+/* flow panel */
+.flow-panel{width:240px;flex-shrink:0;}
+.flow-panel h3{font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+.flow-section{margin-bottom:28px;}
+.flow-section h4{font-size:0.8rem;font-weight:700;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:7px;}
+.flow-dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:700;color:white;flex-shrink:0;}
+.flow-dot.rider{background:var(--navy);}
+.flow-dot.admin{background:var(--yellow);color:var(--navy);}
+.flow-step{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-sm);cursor:pointer;transition:background .2s;margin-bottom:3px;border:1.5px solid transparent;font-size:0.82rem;color:var(--muted);font-weight:500;}
+.flow-step:hover{background:white;color:var(--navy);}
+.flow-step.active-step{background:white;color:var(--navy);font-weight:700;border-color:var(--border2);box-shadow:0 1px 6px rgba(0,0,0,0.06);}
+.flow-step .step-icon{font-size:0.9rem;width:22px;text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="pitch-header">
+  <div class="agency-tag">GharTak · Pitch Prototype</div>
+  <h1>Campus rides,<br>made simple.</h1>
+  <p>Click through the real GharTak flow — student rider side and admin side — built from your app's own screens.</p>
+  <div class="mode-toggle">
+    <button class="mode-btn active" onclick="setMode('rider')">🚗 Rider App</button>
+    <button class="mode-btn" onclick="setMode('admin')">🛠 Admin Panel</button>
+  </div>
+</div>
+
+<div class="device-stage">
+  <div class="device-wrap">
+    <div class="device">
+      <div class="device-bar">
+        <div class="device-notch"></div>
+        <span class="device-time">9:41</span>
+        <span class="device-icons">●●● ▲ 🔋</span>
+      </div>
+
+      <!-- S0: SPLASH -->
+      <div class="screen active screen-dark" id="s-splash">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;background:var(--navy);position:relative;overflow:hidden;">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:26px 26px;"></div>
+          <div style="width:110px;height:110px;border-radius:50%;border:1px solid rgba(255,204,0,0.3);display:flex;align-items:center;justify-content:center;margin-bottom:20px;position:relative;">
+            <div style="width:80px;height:80px;border-radius:22px;background:linear-gradient(135deg,var(--yellow),var(--yellow2));display:flex;align-items:center;justify-content:center;font-size:2rem;">🚙</div>
+          </div>
+          <div class="route-line" style="width:200px;margin-bottom:18px;">
+            <div class="route-dash"></div>
+            <div class="badge-gold" style="position:relative;">🚗 On the way</div>
+          </div>
+          <div style="background:var(--yellow);color:var(--navy);font-size:0.72rem;font-weight:800;letter-spacing:1px;padding:6px 14px;border-radius:50px;margin-bottom:18px;">⚡ CAMPUS RIDES</div>
+          <div style="font-family:'Baloo 2',sans-serif;font-size:2.4rem;font-weight:800;color:white;margin-bottom:6px;">GharTak</div>
+          <div style="font-size:0.9rem;color:rgba(255,255,255,0.5);margin-bottom:50px;">Campus rides, made simple</div>
+          <div style="width:70%;height:4px;background:rgba(255,255,255,0.15);border-radius:4px;overflow:hidden;margin-bottom:10px;"><div style="width:38%;height:100%;background:var(--yellow);"></div></div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.35);" onclick="go('s-home')" style="cursor:pointer;">Loading your account…</div>
+          <button class="btn-full gold" style="max-width:220px;margin-top:36px;" onclick="go('s-home')">Enter app →</button>
+        </div>
+      </div>
+
+      <!-- S1: HOME / FIND RIDE (empty state, matches screenshot) -->
+      <div class="screen" id="s-home">
+        <div class="app-header">
+          <div style="cursor:pointer;color:white;font-size:1.2rem;">☰</div>
+          <div class="app-logo">🚗</div>
+          <div class="app-brand">GharTak</div>
+          <div class="icon-btn" onclick="go('s-profile')">👤</div>
+        </div>
+        <div class="tab-row">
+          <button class="tab-btn" onclick="go('s-post')">🚗 Post Ride</button>
+          <button class="tab-btn on">🔍 Find Ride</button>
+        </div>
+        <div style="padding:16px 16px 0;">
+          <div class="input-wrap"><span>🔍</span><input placeholder="Search destination or poster"></div>
+        </div>
+        <div class="empty-state">
+          <div class="empty-icon">🚗</div>
+          <div class="t-title" style="margin-bottom:6px;">No rides available</div>
+          <div class="t-body">Check back soon — or be the first to post one for your route.</div>
+          <button class="btn-full gold" style="max-width:220px;margin-top:22px;" onclick="go('s-post')">+ Post a ride</button>
+        </div>
+        <div class="bottom-nav">
+          <button class="bnav-item active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</button>
+          <button class="bnav-item" onclick="go('s-post')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Post</button>
+          <button class="bnav-item" onclick="go('s-results')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Find</button>
+          <button class="bnav-item" onclick="go('s-profile')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+        </div>
+      </div>
+
+      <!-- S2: POST RIDE -->
+      <div class="screen" id="s-post">
+        <div class="app-header">
+          <div onclick="go('s-home')" style="cursor:pointer;color:white;font-size:1.2rem;">←</div>
+          <div class="app-brand" style="text-align:left;">Post a ride</div>
+        </div>
+        <div class="tab-row">
+          <button class="tab-btn on">🚗 Post Ride</button>
+          <button class="tab-btn" onclick="go('s-results')">🔍 Find Ride</button>
+        </div>
+        <div class="screen-scroll" style="padding:18px 20px;">
+          <div class="t-label" style="margin-bottom:8px;">Pickup point</div>
+          <div class="input-wrap" style="margin-bottom:14px;"><span>📍</span><input value="349M+JHG, Tarsadi, Gujarat"></div>
+          <div class="t-label" style="margin-bottom:8px;">Drop location</div>
+          <div class="input-wrap" style="margin-bottom:16px;"><span>🎯</span><input placeholder="Tap on map to select destination" style="color:var(--muted2);"></div>
+          <div style="margin-bottom:16px;">
+            <div class="route-line">
+              <div class="route-dot start"></div>
+              <div class="route-dash"></div>
+              <div class="route-dot end"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-bottom:16px;">
+            <div style="flex:1;">
+              <div class="t-label" style="margin-bottom:8px;">Ride type</div>
+              <div style="display:flex;gap:8px;">
+                <div class="chip active">🏍 Bike</div>
+                <div class="chip">🚗 Car</div>
+              </div>
+            </div>
+          </div>
+          <div class="t-label" style="margin-bottom:8px;">Date & time</div>
+          <div class="input-wrap" style="margin-bottom:14px;"><input value="Apr 16, 2026 · 12:58 PM"><span>📅</span></div>
+          <div class="t-label" style="margin-bottom:8px;">Total seats</div>
+          <div class="input-wrap" style="margin-bottom:16px;"><input value="1" type="number"></div>
+          <div style="background:var(--bg);border-radius:var(--r-sm);padding:14px;margin-bottom:18px;">
+            <div class="detail-row" style="padding:6px 0;"><span class="k">Distance</span><span class="v">37.03 km</span></div>
+            <div class="detail-row" style="padding:6px 0;"><span class="k">Est. duration</span><span class="v">29 min</span></div>
+            <div class="detail-row" style="padding:6px 0;"><span class="k">Suggested cost</span><span class="v">₹111</span></div>
+          </div>
+          <button class="btn-full gold" onclick="go('s-posted')">Post ride →</button>
+        </div>
+      </div>
+
+      <!-- S2b: POSTED CONFIRMATION -->
+      <div class="screen" id="s-posted">
+        <div class="empty-state" style="flex:1;justify-content:center;">
+          <div style="width:84px;height:84px;border-radius:50%;background:var(--green-lt);display:flex;align-items:center;justify-content:center;font-size:2rem;margin-bottom:22px;color:var(--green);">✓</div>
+          <div class="t-display" style="margin-bottom:8px;">Ride posted!</div>
+          <div class="t-body" style="margin-bottom:24px;">Riders heading your way can now find and join this trip.</div>
+          <div style="background:var(--bg);border-radius:var(--r);padding:18px;width:100%;text-align:left;margin-bottom:22px;">
+            <div class="route-line" style="margin-bottom:8px;"><div class="route-dot start"></div><div class="route-dash"></div><div class="route-dot end"></div></div>
+            <div class="t-title" style="font-size:0.92rem;">349M+JHG, Tarsadi → Destination</div>
+            <div class="t-body" style="font-size:0.78rem;">Apr 16, 2026 · 12:58 PM · 1 seat · ₹111</div>
+          </div>
+          <button class="btn-full" onclick="go('s-home')">Back to home →</button>
+        </div>
+      </div>
+
+      <!-- S3: FIND RIDE RESULTS -->
+      <div class="screen" id="s-results">
+        <div class="app-header">
+          <div onclick="go('s-home')" style="cursor:pointer;color:white;font-size:1.2rem;">←</div>
+          <div class="app-brand" style="text-align:left;">Find a ride</div>
+        </div>
+        <div class="tab-row">
+          <button class="tab-btn" onclick="go('s-post')">🚗 Post Ride</button>
+          <button class="tab-btn on">🔍 Find Ride</button>
+        </div>
+        <div style="padding:16px 16px 0;">
+          <div class="input-wrap" style="margin-bottom:14px;"><span>🔍</span><input placeholder="Search destination or poster"></div>
+        </div>
+        <div class="screen-scroll" style="padding:0 16px;">
+          <div class="ride-card" onclick="openSheet('rider')">
+            <div class="route-line" style="margin-bottom:10px;"><div class="route-dot start"></div><div class="route-dash"></div><div class="route-dot end"></div></div>
+            <div class="t-title" style="font-size:0.92rem;margin-bottom:2px;">349M+JHG, Tarsadi, Gujarat</div>
+            <div class="t-body" style="font-size:0.78rem;margin-bottom:10px;">🏍 Bike · Apr 16, 2026 · 12:58 PM</div>
+            <div class="divider" style="margin:8px 0;"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:28px;height:28px;font-size:0.68rem;">D</div><span style="font-size:0.82rem;font-weight:600;color:var(--navy);">deep</span></div>
+              <div><span class="t-price">₹111</span><span class="t-body"> · 1 seat</span></div>
+            </div>
+          </div>
+          <div class="ride-card" onclick="openSheet('rider')">
+            <div class="route-line" style="margin-bottom:10px;"><div class="route-dot start"></div><div class="route-dash"></div><div class="route-dot end"></div></div>
+            <div class="t-title" style="font-size:0.92rem;margin-bottom:2px;">Maliba Campus, Tarsadi, Gujarat</div>
+            <div class="t-body" style="font-size:0.78rem;margin-bottom:10px;">🚗 Car · Apr 2, 2026 · 03:30 PM</div>
+            <div class="divider" style="margin:8px 0;"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:28px;height:28px;font-size:0.68rem;">D</div><span style="font-size:0.82rem;font-weight:600;color:var(--navy);">deep</span></div>
+              <div><span class="t-price">₹506</span><span class="t-body"> · 4 seats</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <button class="bnav-item" onclick="go('s-home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</button>
+          <button class="bnav-item" onclick="go('s-post')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Post</button>
+          <button class="bnav-item active"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Find</button>
+          <button class="bnav-item" onclick="go('s-profile')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+        </div>
+      </div>
+
+      <!-- S4: PROFILE (matches screenshot) -->
+      <div class="screen" id="s-profile">
+        <div class="app-header">
+          <div onclick="go('s-home')" style="cursor:pointer;color:white;font-size:1.2rem;">←</div>
+          <div class="app-brand" style="text-align:left;">My Profile</div>
+        </div>
+        <div class="screen-scroll">
+          <div class="profile-hero">
+            <div class="profile-ring"><div class="profile-ring-inner">D</div><div class="profile-verified">✓</div></div>
+            <div style="font-family:'Baloo 2',sans-serif;font-size:1.4rem;font-weight:700;color:white;margin-bottom:12px;">deep</div>
+            <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,204,0,0.12);border:1px solid rgba(255,204,0,0.3);color:var(--yellow2);font-size:0.78rem;font-weight:700;padding:6px 14px;border-radius:50px;margin-bottom:8px;">🎓 202307100510178</div>
+            <div style="display:block;">
+              <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);font-size:0.76rem;font-weight:600;padding:5px 12px;border-radius:50px;">🏫 Tarsadia University</span>
+            </div>
+          </div>
+          <div class="t-label" style="margin:20px 16px 10px;">Personal information</div>
+          <div class="info-card"><div class="info-icon">👤</div><div><div class="t-label" style="margin-bottom:2px;">Full Name</div><div class="t-title" style="font-size:0.92rem;">deep</div></div></div>
+          <div class="info-card"><div class="info-icon">✉️</div><div><div class="t-label" style="margin-bottom:2px;">Email Address</div><div class="t-title" style="font-size:0.92rem;">con717382@gmail.com</div></div></div>
+          <div class="info-card"><div class="info-icon">🎓</div><div><div class="t-label" style="margin-bottom:2px;">Enrollment No.</div><div class="t-title" style="font-size:0.92rem;">202307100510178</div></div></div>
+        </div>
+        <div class="bottom-nav">
+          <button class="bnav-item" onclick="go('s-home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</button>
+          <button class="bnav-item" onclick="go('s-post')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Post</button>
+          <button class="bnav-item" onclick="go('s-results')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Find</button>
+          <button class="bnav-item active"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+        </div>
+      </div>
+
+      <!-- ══ ADMIN SCREENS ══ -->
+
+      <!-- SA1: OVERVIEW (matches screenshot) -->
+      <div class="screen" id="s-admin-overview">
+        <div class="admin-header">
+          <div class="admin-topbar">
+            <div class="app-logo" style="width:30px;height:30px;font-size:0.9rem;">🚗</div>
+            <div style="font-family:'Baloo 2',sans-serif;font-weight:700;font-size:1.05rem;color:white;flex:1;">GharTak Admin</div>
+            <div style="color:white;font-size:1rem;cursor:pointer;">⟳</div>
+            <div style="color:white;font-size:1rem;cursor:pointer;">⋮</div>
+            <div style="color:white;font-size:1rem;cursor:pointer;">⏻</div>
+          </div>
+          <div class="admin-tabs">
+            <button class="admin-tab on">📊 Overview</button>
+            <button class="admin-tab" onclick="go('s-admin-rides')">🚗 Rides</button>
+            <button class="admin-tab" onclick="go('s-admin-users')">👥 Users</button>
+          </div>
+        </div>
+        <div class="screen-scroll" style="padding:20px 16px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="stat-card"><div class="num">8</div><div class="lbl">TOTAL USERS</div></div>
+            <div class="stat-card"><div class="num">132</div><div class="lbl">TOTAL RIDES</div></div>
+            <div class="stat-card hi"><div class="num">0</div><div class="lbl">ACTIVE RIDES</div></div>
+            <div class="stat-card"><div class="num">0</div><div class="lbl">DONE TODAY</div></div>
+            <div class="stat-card"><div class="num">76</div><div class="lbl">CAR RIDES</div></div>
+            <div class="stat-card"><div class="num">49</div><div class="lbl">BIKE RIDES</div></div>
+          </div>
+          <div style="margin-top:20px;background:var(--bg);border-radius:var(--r);padding:16px;">
+            <div class="t-label" style="margin-bottom:10px;">Fleet split</div>
+            <div style="display:flex;height:14px;border-radius:8px;overflow:hidden;margin-bottom:8px;">
+              <div style="width:61%;background:var(--navy);"></div>
+              <div style="width:39%;background:var(--yellow);"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.76rem;color:var(--muted);"><span>● Car · 76</span><span>● Bike · 49</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SA2: RIDES LIST (matches screenshot) -->
+      <div class="screen" id="s-admin-rides">
+        <div class="admin-header">
+          <div class="admin-topbar">
+            <div class="app-logo" style="width:30px;height:30px;font-size:0.9rem;">🚗</div>
+            <div style="font-family:'Baloo 2',sans-serif;font-weight:700;font-size:1.05rem;color:white;flex:1;">GharTak Admin</div>
+            <div style="color:white;font-size:1rem;">⟳</div><div style="color:white;font-size:1rem;">⋮</div><div style="color:white;font-size:1rem;">⏻</div>
+          </div>
+          <div class="admin-tabs">
+            <button class="admin-tab" onclick="go('s-admin-overview')">📊 Overview</button>
+            <button class="admin-tab on">🚗 Rides</button>
+            <button class="admin-tab" onclick="go('s-admin-users')">👥 Users</button>
+          </div>
+        </div>
+        <div style="padding:16px 16px 0;">
+          <div class="input-wrap" style="margin-bottom:12px;"><span>🔍</span><input placeholder="Search by location or name..."></div>
+          <div class="sort-row" style="margin-bottom:10px;">
+            <button class="sort-chip on">Newest</button>
+            <button class="sort-chip">Oldest</button>
+            <button class="sort-chip">Cost ↓</button>
+            <button class="sort-chip">Cost ↑</button>
+          </div>
+          <div class="input-wrap" style="margin-bottom:10px;"><span style="flex:1;font-weight:600;color:var(--navy);font-size:0.85rem;">All Status</span><span>▾</span></div>
+        </div>
+        <div class="screen-scroll" style="padding:0 16px;">
+          <div class="ride-card" onclick="openSheet('admin')">
+            <div class="t-title" style="font-size:0.9rem;margin-bottom:2px;">349M+JHG, Tarsadi, Gujarat, In...</div>
+            <div class="t-body" style="font-size:0.76rem;margin-bottom:8px;">Apr 16, 2026 · 12:58 PM</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><div class="avatar" style="width:22px;height:22px;font-size:0.6rem;">D</div><span style="font-size:0.8rem;color:var(--muted);">deep</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:0.8rem;color:var(--muted);">🏍 1 seat · ₹111</span>
+              <span class="badge-gray">expired</span>
+            </div>
+          </div>
+          <div class="ride-card" onclick="openSheet('admin')">
+            <div class="t-title" style="font-size:0.9rem;margin-bottom:2px;">Maliba Campus, Tarsadi, Gujara...</div>
+            <div class="t-body" style="font-size:0.76rem;margin-bottom:8px;">Apr 02, 2026 · 03:30 PM</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><div class="avatar" style="width:22px;height:22px;font-size:0.6rem;">D</div><span style="font-size:0.8rem;color:var(--muted);">deep</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:0.8rem;color:var(--muted);">🚗 4 seats · ₹506</span>
+              <span class="badge-gray">expired</span>
+            </div>
+          </div>
+          <div class="ride-card" onclick="openSheet('admin')">
+            <div class="t-title" style="font-size:0.9rem;margin-bottom:2px;">349M+Q9H, Tarsadi, Gujarat, In...</div>
+            <div class="t-body" style="font-size:0.76rem;margin-bottom:8px;">Mar 31, 2026 · 12:21 AM</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><div class="avatar" style="width:22px;height:22px;font-size:0.6rem;">S</div><span style="font-size:0.8rem;color:var(--muted);">sngamit9</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:0.8rem;color:var(--muted);">🏍 2 seats · ₹92</span>
+              <span class="badge-green">active</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SA3: USERS -->
+      <div class="screen" id="s-admin-users">
+        <div class="admin-header">
+          <div class="admin-topbar">
+            <div class="app-logo" style="width:30px;height:30px;font-size:0.9rem;">🚗</div>
+            <div style="font-family:'Baloo 2',sans-serif;font-weight:700;font-size:1.05rem;color:white;flex:1;">GharTak Admin</div>
+            <div style="color:white;font-size:1rem;">⟳</div><div style="color:white;font-size:1rem;">⋮</div><div style="color:white;font-size:1rem;">⏻</div>
+          </div>
+          <div class="admin-tabs">
+            <button class="admin-tab" onclick="go('s-admin-overview')">📊 Overview</button>
+            <button class="admin-tab" onclick="go('s-admin-rides')">🚗 Rides</button>
+            <button class="admin-tab on">👥 Users</button>
+          </div>
+        </div>
+        <div style="padding:16px 16px 0;">
+          <div class="input-wrap" style="margin-bottom:14px;"><span>🔍</span><input placeholder="Search by name or email..."></div>
+        </div>
+        <div class="screen-scroll" style="padding:0 16px;">
+          <div class="ride-card" style="display:flex;align-items:center;gap:12px;cursor:default;">
+            <div class="avatar" style="width:40px;height:40px;background:var(--navy);color:var(--yellow);">D</div>
+            <div style="flex:1;">
+              <div class="t-title" style="font-size:0.9rem;">deep</div>
+              <div class="t-body" style="font-size:0.76rem;">con717382@gmail.com · Tarsadia University</div>
+            </div>
+            <div class="badge-green">Verified</div>
+          </div>
+          <div class="ride-card" style="display:flex;align-items:center;gap:12px;cursor:default;">
+            <div class="avatar" style="width:40px;height:40px;background:var(--navy);color:var(--yellow);">S</div>
+            <div style="flex:1;">
+              <div class="t-title" style="font-size:0.9rem;">sngamit9</div>
+              <div class="t-body" style="font-size:0.76rem;">Tarsadia University</div>
+            </div>
+            <div class="badge-green">Verified</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /device -->
+
+    <!-- SHEET OVERLAYS (rendered above device, toggled) -->
+    <div class="sheet-overlay" id="sheet-rider" style="display:none;">
+      <div class="sheet">
+        <div class="sheet-head"><div class="sheet-grip"></div><span style="font-size:1.2rem;">🚗</span><span style="font-family:'Baloo 2',sans-serif;font-weight:700;color:white;font-size:1.05rem;flex:1;">Ride Details</span><span onclick="closeSheet('rider')" style="color:white;cursor:pointer;font-size:1.1rem;">✕</span></div>
+        <div class="sheet-body">
+          <div class="detail-row"><span class="k">From</span><span class="v">349M+JHG, Tarsadi, Gujarat, India</span></div>
+          <div class="detail-row"><span class="k">To</span><span class="v" style="color:var(--muted2);">Tap on map to select destination</span></div>
+          <div class="detail-row"><span class="k">Date & Time</span><span class="v">Apr 16, 2026 · 12:58 PM</span></div>
+          <div class="detail-row"><span class="k">Posted By</span><span class="v">deep</span></div>
+          <div class="detail-row"><span class="k">Ride Type</span><span class="v">🏍 Bike</span></div>
+          <div class="detail-row"><span class="k">Total Seats</span><span class="v">1</span></div>
+          <div class="detail-row"><span class="k">Distance</span><span class="v">37.03 km</span></div>
+          <div class="detail-row"><span class="k">Duration</span><span class="v">29 min</span></div>
+          <div class="detail-row"><span class="k">Cost</span><span class="v">₹111</span></div>
+          <button class="btn-full gold" style="margin-top:18px;">Request to join →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet-overlay" id="sheet-admin" style="display:none;">
+      <div class="sheet">
+        <div class="sheet-head"><div class="sheet-grip"></div><span style="font-size:1.2rem;">🚗</span><span style="font-family:'Baloo 2',sans-serif;font-weight:700;color:white;font-size:1.05rem;flex:1;">Ride Details</span><span onclick="closeSheet('admin')" style="color:white;cursor:pointer;font-size:1.1rem;">✕</span></div>
+        <div class="sheet-body">
+          <div class="detail-row"><span class="k">From</span><span class="v">349M+JHG, Tarsadi, Gujarat, India</span></div>
+          <div class="detail-row"><span class="k">To</span><span class="v" style="color:var(--muted2);">Tap on map to select destination</span></div>
+          <div class="detail-row"><span class="k">Date & Time</span><span class="v">Apr 16, 2026 · 12:58 PM</span></div>
+          <div class="detail-row"><span class="k">Posted By</span><span class="v">deep</span></div>
+          <div class="detail-row"><span class="k">Rider ID</span><span class="v" style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;">v4UoS1f1zrckyUVQnagtFiJJE9c2</span></div>
+          <div class="detail-row"><span class="k">Ride Type</span><span class="v">Bike</span></div>
+          <div class="detail-row"><span class="k">Total Seats</span><span class="v">1</span></div>
+          <div class="detail-row"><span class="k">Remaining</span><span class="v">0</span></div>
+          <div class="detail-row"><span class="k">Distance</span><span class="v">37.03 km</span></div>
+          <div class="detail-row"><span class="k">Duration</span><span class="v">29 min</span></div>
+          <div class="detail-row"><span class="k">Cost</span><span class="v">₹111</span></div>
+          <div style="display:flex;gap:8px;margin-top:18px;">
+            <button class="btn-ghost">Edit</button>
+            <button class="btn-full" style="background:var(--red);">Remove ride</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /device-wrap -->
+
+  <!-- FLOW PANEL -->
+  <div class="flow-panel">
+    <h3>Prototype flow</h3>
+    <div class="flow-section" id="fp-rider">
+      <h4><div class="flow-dot rider">R</div> Rider App</h4>
+      <div class="flow-step active-step" onclick="go('s-splash')" id="fp-s-splash"><span class="step-icon">🌑</span> Splash screen</div>
+      <div class="flow-step" onclick="go('s-home')" id="fp-s-home"><span class="step-icon">🏠</span> Home (empty state)</div>
+      <div class="flow-step" onclick="go('s-post')" id="fp-s-post"><span class="step-icon">📝</span> Post a ride</div>
+      <div class="flow-step" onclick="go('s-posted')" id="fp-s-posted"><span class="step-icon">✅</span> Ride posted</div>
+      <div class="flow-step" onclick="go('s-results')" id="fp-s-results"><span class="step-icon">🔍</span> Find ride results</div>
+      <div class="flow-step" onclick="openSheet('rider')" id="fp-sheet-rider"><span class="step-icon">📋</span> Ride details sheet</div>
+      <div class="flow-step" onclick="go('s-profile')" id="fp-s-profile"><span class="step-icon">👤</span> My profile</div>
+    </div>
+    <div class="flow-section" id="fp-admin" style="display:none;">
+      <h4><div class="flow-dot admin">A</div> Admin Panel</h4>
+      <div class="flow-step active-step" onclick="go('s-admin-overview')" id="fp-s-admin-overview"><span class="step-icon">📊</span> Overview</div>
+      <div class="flow-step" onclick="go('s-admin-rides')" id="fp-s-admin-rides"><span class="step-icon">🚗</span> Rides list</div>
+      <div class="flow-step" onclick="openSheet('admin')" id="fp-sheet-admin"><span class="step-icon">📋</span> Ride details sheet</div>
+      <div class="flow-step" onclick="go('s-admin-users')" id="fp-s-admin-users"><span class="step-icon">👥</span> Users</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentScreen = 's-splash';
+
+function go(id) {
+  document.getElementById(currentScreen).classList.remove('active');
+  document.querySelectorAll('.flow-step').forEach(el => el.classList.remove('active-step'));
+  const fp = document.getElementById('fp-' + id);
+  if (fp) fp.classList.add('active-step');
+  document.getElementById(id).classList.add('active');
+  currentScreen = id;
+}
+
+function openSheet(which){
+  document.getElementById('sheet-' + which).style.display = 'flex';
+  const fp = document.getElementById('fp-sheet-' + which);
+  if (fp){ document.querySelectorAll('.flow-step').forEach(el => el.classList.remove('active-step')); fp.classList.add('active-step'); }
+}
+function closeSheet(which){
+  document.getElementById('sheet-' + which).style.display = 'none';
+}
+
+function setMode(mode) {
+  document.querySelectorAll('.mode-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0 && mode==='rider')||(i===1 && mode==='admin'));
+  });
+  document.getElementById('fp-rider').style.display = mode==='rider' ? 'block' : 'none';
+  document.getElementById('fp-admin').style.display  = mode==='admin'  ? 'block' : 'none';
+  closeSheet('rider'); closeSheet('admin');
+  go(mode === 'rider' ? 's-splash' : 's-admin-overview');
+}
+</script>
+</body>
+</html>
